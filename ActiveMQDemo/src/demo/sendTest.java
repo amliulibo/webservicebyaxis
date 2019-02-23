@@ -6,7 +6,7 @@ public class sendTest {
 		// TODO Auto-generated method stub
 
 		try {
-			new MQTool().testMQProducerQueue();
+			new MQTool().QueueProducer();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

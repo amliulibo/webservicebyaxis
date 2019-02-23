@@ -5,7 +5,7 @@ public class receivetest {
 		// TODO Auto-generated method stub
 
 		try {
-			new MQTool().TestMQConsumerQueue();
+			new MQTool().QueueConsumer();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

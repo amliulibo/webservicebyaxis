@@ -8,7 +8,7 @@ public class MQTool {
 	
 	private static String brokerUrl="tcp://localhost:61616";
 	
-	public void testMQProducerQueue() throws Exception{
+	public void QueueProducer() throws Exception{
         //1、创建工厂连接对象，需要制定ip和端口号
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
         //2、使用连接工厂创建一个连接对象
@@ -30,7 +30,7 @@ public class MQTool {
         session.close();
         connection.close();
     }
-	public void TestMQConsumerQueue() throws Exception{
+	public void QueueConsumer() throws Exception{
         //1、创建工厂连接对象，需要制定ip和端口号
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
         //2、使用连接工厂创建一个连接对象
@@ -68,7 +68,7 @@ public class MQTool {
         connection.close();
     }
 	
-	 public void TestTopicProducer() throws Exception{
+	 public void TopicProducer() throws Exception{
 	        //1、创建工厂连接对象，需要制定ip和端口号
 	        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
 	        //2、使用连接工厂创建一个连接对象
@@ -91,7 +91,7 @@ public class MQTool {
 	        connection.close();
 	    }
 	 
-	 public void TestTopicConsumer() throws Exception{
+	 public void TopicConsumer() throws Exception{
 	        //1、创建工厂连接对象，需要制定ip和端口号
 	        ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
 	        //2、使用连接工厂创建一个连接对象
