@@ -1,6 +1,7 @@
 package demo.demo2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 
 
 
-public class testMultiBank {
+public class multiBankTest {
 
 	Map<String, String> bankMap=new HashMap<>();
 	
@@ -50,7 +51,8 @@ public class testMultiBank {
 	            
 	        }
 		}
-        assertEquals("1", "1");
+        
+        assertTrue(true);
         
         
     }
