@@ -1,4 +1,4 @@
-package demo.helper1;
+package demo.demo2;
 
  
 import javax.jms.JMSException;
@@ -29,7 +29,7 @@ public static void sendTopicMessage(String dest, String msg)
     {
       public Message createMessage(Session session) throws JMSException 
       {
-        return session.createTextMessage("msg");
+        return session.createTextMessage(msg);
       }
     });
   }
@@ -44,10 +44,11 @@ public static void sendTopicMessage(String dest, String msg)
 	 　　*/
 public static void sendQueueMessage(String dest, String msg)
   {
-    JmsTemplateFactory.getInstance().getQueueJmsTemplate().send(dest, new MessageCreator()
+    JmsTemplateFactory.getInstance().getQueueJmsTemplate().send(dest, 
+    		new MessageCreator()
     {
       public Message createMessage(Session session) throws JMSException {
-        return session.createTextMessage("");
+        return session.createTextMessage(msg);
       }
     });
   }

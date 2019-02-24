@@ -1,4 +1,4 @@
-package demo.helper1;
+package demo.demo2;
 
  
 import org.springframework.jms.core.JmsTemplate;

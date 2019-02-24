@@ -1,4 +1,4 @@
-package demo.helper1;
+package demo.demo2;
 
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -6,14 +6,14 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 /**
  * 连接工厂 配置
  * 
- * @author flm
- * 2017年10月13日
+ * @author  
+ *  
  */
 public class ConnectionFactory
 {
-  private static final String URL = "tcp://10.10.1.1:61616";
-  private static final String USERNAME = "hkadmin";
-  private static final String PASSWORD = "hk667";
+  private static final String URL = "tcp://localhost:61616";
+  private static final String USERNAME = "admin";
+  private static final String PASSWORD = "admin";
   private static final int SESSIONCACHESIZE = 20;
   private javax.jms.ConnectionFactory factory;
 
@@ -42,9 +42,9 @@ public class ConnectionFactory
   }
 
   private AMQConfigBean loadConfigure() {
-    if ("tcp://10.10.1.1:61616" != null) {
+    if (URL != null) {
       try {
-        return new AMQConfigBean("tcp://10.10.1.1:61616", "hkadmin", "hk667", 20);
+        return new AMQConfigBean(URL, USERNAME, PASSWORD, 20);
       } catch (Exception e) {
         throw new IllegalStateException("load amq config error!");
       }
