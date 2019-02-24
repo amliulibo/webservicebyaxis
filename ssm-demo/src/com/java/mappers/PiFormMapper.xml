@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.dao.PiFormDao">
+ <!-- 先定义一个Interface，UserMapper，然后Mapper文件的namespace指向的就是这个Interface， UserInterface里定义的方法和UserMapper.xml文件中的一样, 
+        然后代码里直接使用接口 -->
+	<resultMap type="PIFormDTO" id="piFormResult">
+		<result property="formId" column="formid"/>
+		<result property="formGuid" column="formGuid" />
+        <result property="name" column="name" />
+        <result property="menuId" column="menuId" />
+        <result property="isShowDialogue" column="isShowDialogue" />
+        <result property="processId" column="processId" />
+        <result property="voucherId" column="voucherId" />
+        <result property="stepDescId" column="stepDescId" />
+        <result property="admdivCode" column="admdivCode" />
+        <result property="dbYear" column="dbYear" />
+        <result property="formClientGuid" column="formClientGuid" />
+        
+        
+		
+	</resultMap>   
+	<!-- 所谓的动态SQL语句 --> 
+	<select id="selectPiForm"  resultMap="piFormResult">
+	select * from  fp_t_piform 
+		<where>
+		<if test="menuid!=null and menuid.length()>0">
+		and menuid=#{menuid}
+		</if>
+		<if test="formName!=null ">
+		and upper(name)  like concat(concat('%',upper(#{formName})),'%') 
+		
+		</if>
+		</where>
+		order by formid,name
+	
+	</select>
+	
+	
+
+	
+	
+	    
+</mapper>

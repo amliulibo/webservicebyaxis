@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.dao.PIProcessDao">
+<!-- 使用dao的代理开发模式的时候
+ 5         1，namespace必须和map接口的完全限定名完全一样
+ 6         2.对应的数据库库擦操作id必须和接口中抽象放安防名一致
+ 7         3,parameterType必须和抽闲接口的抽象方法参数类型一致
+ 8         4，resultType必须和接口抽象方法的返回类型一样
+ 
+ 二.开发规范
+1、在mapper.xml中namespace等于mapper接口地址。
+2、mapper.java接口中的方法名和mapper.xml中statement的id一致
+3、mapper.java接口中的方法输入参数类型和mapper.xml中statement的parameterType指定的类型一致。
+4、mapper.java接口中的方法返回值类型和mapper.xml中statement的resultType指定的类型一致。
+      -->
+ 
+	<resultMap type="PIProcessDTO" id="piProcessResult">
+ 	
+		<result property="processId" column="processid"/>
+		<result property="code" column="code" />
+        <result property="name" column="name" />
+        <result property="assemblyOrPackage" column="assemblyOrPackage" />
+        <result property="method" column="method" />
+        <result property="type" column="type" />
+        <result property="isNet" column="isNet" />
+        <result property="description" column="description" />
+        
+
+       
+        
+	</resultMap> 
+	
+	<select id="selectProcess"   resultMap="piProcessResult">
+		select  * from fp_t_piProcess 
+		<where>
+		<if test="processID!=null and processID.length()>0">
+		and processid=#{processID}
+		</if>
+		<if test="processName!=null ">
+		 
+		and upper(Name)  like '%${processName}%' 
+		 
+		
+		</if>
+		</where>
+		order by processid
+	</select>
+	
+	<insert id="insertProcess" parameterType="com.java.entity.PIProcessDTO">
+		<selectKey keyProperty="processId" resultType="java.lang.Integer" order="BEFORE" >
+			 select fp_s_piprocess.NEXTVAL as processid from DUAL
+		</selectKey>
+		
+		
+		<!--  INSERT INTO  fp_t_piprocess(processid, processguid, type, code, name, assemblyorpackage, method, isnet, description, admdivcode, dbyear)-->  
+		INSERT INTO  fp_t_piprocess(processid, processguid, type, code, name, assemblyorpackage, method)
+		values(#{processId},sys_guid(),#{type},#{code},#{name},#{assemblyOrPackage},#{method})
+
+		
+		
+	</insert>
+	
+	<update id="updateProcess" parameterType="com.java.entity.PIProcessDTO">
+
+		update  fp_t_piprocess set type=#{type}, code=#{code}, name=#{name}, assemblyorpackage=#{assemblyOrPackage}, method=#{method}
+		,isnet=#{isNet},description=#{description},admdivcode=#{admdivCode},dbyear=#{dbYear}
+		where processId=#{processId}
+		
+		
+	</update>
+	
+	<delete id="deleteProcess" parameterType="com.java.entity.PIProcessDTO">
+		delete fp_t_piprocess where processId=#{processId};
+
+		
+		
+	</delete>
+	
+	
+	
+	
+</mapper>

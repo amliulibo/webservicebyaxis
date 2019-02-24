@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.dao.VMDefineDao">
+<!-- 使用dao的代理开发模式的时候
+ 5         1，namespace必须和map接口的完全限定名完全一样
+ 6         2.对应的数据库库擦操作id必须和接口中抽象放安防名一致
+ 7         3,parameterType必须和抽闲接口的抽象方法参数类型一致
+ 8         4，resultType必须和接口抽象方法的返回类型一样
+ 
+ 二.开发规范
+1、在mapper.xml中namespace等于mapper接口地址。
+2、mapper.java接口中的方法名和mapper.xml中statement的id一致
+3、mapper.java接口中的方法输入参数类型和mapper.xml中statement的parameterType指定的类型一致。
+4、mapper.java接口中的方法返回值类型和mapper.xml中statement的resultType指定的类型一致。
+      -->
+ 
+	<resultMap type="VMDefineDTO" id="vmDefineResult">
+ 	
+		<result property="voucherid" column="voucherid"/>
+		<result property="vouchertypeid" column="vouchertypeid" />
+        <result property="bctypeid" column="bctypeid" />
+        <result property="vouchercode" column="vouchercode" />
+        <result property="vouchername" column="vouchername" />
+        <result property="vouchercaption" column="vouchercaption" />
+        <result property="voucherstyle" column="voucherstyle" />
+        <result property="mainvchtable" column="mainvchtable" />
+        <result property="detailvchtable" column="detailvchtable" />
+        <result property="isvmsource" column="isvmsource" />
+        <result property="isrefund" column="isrefund" />
+        <result property="remark" column="remark" />
+       
+        
+	</resultMap> 
+	
+	<select id="selectVmDefine"   resultMap="vmDefineResult">
+		select * from fp_t_vmdefine
+		<where>
+		<if test="voucherId!=null and voucherId.length()>0">
+		and voucherId=#{voucherId}
+		</if>
+		<if test="voucherName!=null ">
+		 
+		and upper(voucherName)  like '%${voucherName}%' 
+		 
+		
+		</if>
+		</where>
+		order by voucherId
+	</select>
+	
+	
+</mapper>

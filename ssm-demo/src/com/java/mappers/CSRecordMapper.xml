@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.dao.FunctionsDao">
+ <!-- 先定义一个Interface，UserMapper，然后Mapper文件的namespace指向的就是这个Interface， UserInterface里定义的方法和UserMapper.xml文件中的一样, 
+        然后代码里直接使用接口 -->
+	<resultMap type="CSRecordDTO" id="csRecordResult">
+		<result property="itemId" column="itemId"/>
+		<result property="itemCode" column="itemCode" />
+        <result property="itemName" column="itemName" />
+        <result property="startDate" column="startDate" />
+        <result property="endDate" column="endDate" />
+        <result property="parentId" column="superitemid" />
+        <result property="levelNo" column="levelNo" />
+        <result property="isLeaf" column="isLeaf" />
+        <result property="elementCode" column="elementCode" />
+        <result property="divType" column="divType" />
+       
+		
+	</resultMap>   
+	<!-- 所谓的动态SQL语句 --> 
+	<select id="selectAdmdiv"  resultMap="csRecordResult">
+	select * from  fp_t_ctadmdiv 
+		<where>
+		<if test="id!=null">
+		superitemid=#{id}
+		</if>
+		
+		
+		</where>
+		order by itemcode
+	
+	</select>
+	
+	
+	
+	
+	    
+</mapper>

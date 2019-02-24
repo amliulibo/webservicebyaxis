@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.dao.FunctionsDao">
+ <!-- 先定义一个Interface，UserMapper，然后Mapper文件的namespace指向的就是这个Interface， UserInterface里定义的方法和UserMapper.xml文件中的一样, 
+        然后代码里直接使用接口 -->
+	<resultMap type="Functions" id="FunctionsResult">
+		<result property="id" column="id"/>
+		<result property="appID" column="app_ID" />
+        <result property="name" column="name" />
+        <result property="codeName" column="code_Name" />
+        <result property="description" column="description" />
+        <result property="sortID" column="sortID" />
+        <result property="inherited" column="inherited" />
+        <result property="classify" column="classify" />
+        <result property="modifyTime" column="modifyTime" />
+        <result property="icon" column="icon" />
+        <result property="appCodeName" column="appCodeName" />
+        <result property="appName" column="appName" />
+        <result property="createTime" column="createTime" />
+        <result property="parentId" column="parentId" />
+        <result property="assembly" column="assembly" />
+        <result property="className" column="className" />
+        <result property="p1" column="p1" />
+        <result property="p2" column="p2" />
+        <result property="p3" column="p3" />
+        <result property="p4" column="p4" />
+        <result property="p5" column="p5" />
+        <result property="useYears" column="useYears" />
+        <result property="url" column="url" />
+		
+	</resultMap>   
+	<!-- 所谓的动态SQL语句 --> 
+	<select id="selectFunctionsInApp"  resultMap="FunctionsResult">
+	select * from  fp_t_cafunctions 
+		<where>
+		<if test="AppId!=null">
+		app_id=#{AppId}
+		</if>
+		<if test="sName!=null">
+		and name like concat(concat('%',#{sName}),'%')
+		</if>
+		<if test="sClass!=null">
+		and upper(classname) like concat(concat('%',upper(#{sClass})),'%')
+		</if>
+		<if test="sParentId!=null and sParentId.length()>0">
+		and parentid=#{sParentId}
+		</if>
+		
+		</where>
+	
+	
+	</select>
+	
+	<select id="selectFunctionSet"  resultMap="FunctionsResult">
+	select * from  fp_t_cafunctionsets 
+		<where>
+		<if test="id ==null or id.length()==0 ">
+		 parentid='1459c6da-8046-4da9-afb9-c33b08a94a14'
+		</if>
+		<if test="id !=null and id.length()>0 ">
+		 parentid=#{id}
+		</if>
+		
+		</where>
+		order by code_name
+		
+		
+	</select>
+	
+	<select id="selectFunctions"  resultMap="FunctionsResult">
+	select * from  fp_t_cafunctions where parentid=#{id} order by code_name
+		
+	</select>
+	
+	
+	    
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.dao.PIButtonDao">
+ 
+ 	<resultMap type="PIButtonDTO" id="piButtonResult">
+ 	
+		<result property="buttonId" column="buttonId"/>
+		<result property="buttonGuid" column="buttonGuid" />
+        <result property="formId" column="formId" />
+        <result property="name" column="name" />
+        <result property="hint" column="hint" />
+        <result property="icon" column="icon" />
+        <result property="helpno" column="helpno" />
+        <result property="processId" column="processId" />
+        <result property="actionDescId" column="actionDescId" />
+        <result property="buttonOrder" column="buttonOrder" />
+        <result property="buttonType" column="buttonType" />
+        <result property="mergename" column="mergename" />
+        <result property="admdivCode" column="admdivCode" />
+        <result property="dbYear" column="dbYear" />
+        <result property="mergeicon" column="mergeicon" />
+        
+        
+       
+        
+        
+		
+	</resultMap>   
+	
+	<select id="selectPiButton"   resultMap="piButtonResult">
+	select * from  fp_t_piButton 
+		<where>
+		<if test="formID!=null and formID.length()>0">
+		and formid=#{formID}
+		</if>
+		<if test="buttonName!=null ">
+		 <!-- select * from user where username like '%${value}%'   -->
+		and upper(name)  like '%${buttonName}%' 
+		 
+		
+		</if>
+		</where>
+		order by formid,buttontype,buttonorder
+	
+	</select>
+	
+	    
+</mapper>
