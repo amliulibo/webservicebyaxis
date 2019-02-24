@@ -1,6 +1,7 @@
 package demo.demo1;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.jms.JMSException;
@@ -26,15 +27,19 @@ public class testAMQQueue {
 		bankMap.put("bank02", "tcp://localhost:61616");
 		bankMap.put("bank03", "tcp://localhost:61616");
 	}
-	//@Test
+	/**
+	 * 被动接受（同步方式）
+	 * @throws JMSException
+	 */
+	@Test
 	public void test01Consumer() throws JMSException
 	{
 		for (String bank : bankMap.keySet()) {
-			new AMQQueueConsumer(bank, bankMap.get(bank));
+			new AMQQueueConsumer(bank, bankMap.get(bank)).Start();
 		}
 		
 	}
-	@Test
+	//@Test
 	public void test01Consumer1() throws JMSException
 	{
 		for (String bank : bankMap.keySet()) {
@@ -61,6 +66,8 @@ public class testAMQQueue {
 		}
 		
 	}
+	
+	
 	@Test
 	public void test02Producer()
 	{
@@ -77,6 +84,25 @@ public class testAMQQueue {
 			}
 		}
 	}
+	
+	/**
+	 * 主动获取（异步方式）
+	 * @throws JMSException
+	 */
+	//@Test
+	public void test03Consumer() throws JMSException
+	{
+		for (String bank : bankMap.keySet()) {
+			AMQQueueConsumer consumer= new AMQQueueConsumer(bank, bankMap.get(bank)) ;
+			List<String> list1= consumer.getTextMessage(10);
+			for (String string : list1) {
+				System.out.println(string);
+			}
+		}
+		
+		
+	}
+	
 	
 
 }

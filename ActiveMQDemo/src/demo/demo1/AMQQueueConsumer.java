@@ -1,5 +1,8 @@
 package demo.demo1;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jms.*;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -40,7 +43,7 @@ public class AMQQueueConsumer {
          session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         //5、使用会话对象创建目标对象，包含queue或topic（一对一或一对多）
         queue = session.createQueue(queueName);
-        createConsumer();
+        //createConsumer();
        
          
 	}
@@ -49,7 +52,7 @@ public class AMQQueueConsumer {
 		
 		this(queueName,broker);
 		this.messageListener=messageListener;
-		createConsumer();
+		//createConsumer();
 	
 	}
 	private void createConsumer() throws JMSException {
@@ -84,6 +87,26 @@ public class AMQQueueConsumer {
 		     
 		     
 		     
+	}
+	
+	public void Start() throws JMSException
+	{
+		createConsumer();
+	}
+	
+	public List<String> getTextMessage(int count) throws JMSException
+	{
+		List<String> list=new ArrayList<>();
+		MessageConsumer consumer = session.createConsumer(queue);
+		for (int i = 0; i < count; i++) {
+			//Message message= consumer.receive(1000);
+			Message message= consumer.receive(1);
+			if (message!=null) {
+				list.add(((TextMessage)message).getText());
+				message.acknowledge();
+			}
+		}
+		return list;
 	}
 	
 	 
