@@ -92,6 +92,7 @@ public class AMQQueueConsumer {
 	public void Start() throws JMSException
 	{
 		createConsumer();
+		
 	}
 	
 	public List<String> getTextMessage(int count) throws JMSException
@@ -100,7 +101,8 @@ public class AMQQueueConsumer {
 		MessageConsumer consumer = session.createConsumer(queue);
 		for (int i = 0; i < count; i++) {
 			//Message message= consumer.receive(1000);
-			Message message= consumer.receive(1);
+			//Message message= consumer.receive(1);
+			Message message= consumer.receiveNoWait();
 			if (message!=null) {
 				list.add(((TextMessage)message).getText());
 				message.acknowledge();
