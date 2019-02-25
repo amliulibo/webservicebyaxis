@@ -2,6 +2,7 @@
     <wb-module deploy-name="ActiveMQDemo">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/test"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
         <property name="context-root" value="ActiveMQDemo"/>
         <property name="java-output-path" value="/ActiveMQDemo/build/classes"/>
     </wb-module>

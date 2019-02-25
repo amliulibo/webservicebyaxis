@@ -1,7 +1,6 @@
 package demo.demo2;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +13,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.Before;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.jms.connection.CachingConnectionFactory;
 
 
