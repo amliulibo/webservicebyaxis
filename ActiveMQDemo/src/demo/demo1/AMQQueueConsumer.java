@@ -100,13 +100,18 @@ public class AMQQueueConsumer {
 		List<String> list=new ArrayList<>();
 		MessageConsumer consumer = session.createConsumer(queue);
 		for (int i = 0; i < count; i++) {
-			//Message message= consumer.receive(1000);
-			//Message message= consumer.receive(1);
-			Message message= consumer.receiveNoWait();
+			Message message= consumer.receive(1);//设置超时时间
+			//Message message= consumer.receive();//如果没有消息则等待
+			//Message message= consumer.receiveNoWait();
+			
 			if (message!=null) {
 				list.add(((TextMessage)message).getText());
+				//System.out.println("TextMessage="+((TextMessage)message).getText());
 				message.acknowledge();
+			}else{
+				//System.out.println("no message");
 			}
+				
 		}
 		return list;
 	}

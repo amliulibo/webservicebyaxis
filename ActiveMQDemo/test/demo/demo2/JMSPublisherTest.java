@@ -3,13 +3,11 @@ package demo.demo2;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.IOException;
 
 import javax.jms.*;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import junit.framework.Assert;
 
@@ -59,7 +57,7 @@ public class JMSPublisherTest {
              */
             //JMSPublisher.sendTopicMessage("topic/send", String.valueOf(idx * 1111));
         }
-        assertEquals("1", "1");
+       
         
         
     }
@@ -104,7 +102,7 @@ public class JMSPublisherTest {
             }
         });
         
-        assertEquals("1", "1");
+         
 		//System.in.read();
     }
 }
