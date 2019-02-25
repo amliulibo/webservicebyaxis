@@ -6,7 +6,7 @@ import javax.jms.JMSException;
 
 import org.apache.activemq.transport.stomp.StompConnection;
 
-import webdemo.activemq.ProducePool;
+
 
 public class ProduceTest {
 

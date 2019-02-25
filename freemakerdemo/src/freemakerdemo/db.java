@@ -1,5 +1,5 @@
 package freemakerdemo;
- 
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
- 
 
 public class db {
 	
@@ -22,6 +20,7 @@ public class db {
 		
 	}
 	// 获取数据库中所有表的表名，并添加到列表结构中。
+	@SuppressWarnings("rawtypes")
 	public static List getTableList(Connection conn) throws SQLException {
 	    List<Map> tableList = new ArrayList<Map>();
 

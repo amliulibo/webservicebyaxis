@@ -40,6 +40,7 @@ public class test {
 			new FreemarkerUtil().print("DAO.ftl",map);
 			new FreemarkerUtil().printFile("DAO.ftl",map,"DAO.java");
 			System.out.print("daoda ");
+			
 					
 			
 		} catch (SQLException e) {
