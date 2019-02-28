@@ -18,6 +18,7 @@ public class EmitLogDirect {
 	    try (Connection connection = factory.newConnection();
 	         Channel channel = connection.createChannel()) {
 	    	channel.exchangeDeclare(EXCHANGE_NAME, "direct");
+	    	
 	    	String severity=getSeverity(args);
 	    	String message=getMessage(args);
 	    	channel.basicPublish(EXCHANGE_NAME, severity, null, message.getBytes());
