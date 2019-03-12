@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app  version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+      http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+  <display-name>Archetype Created Web Application</display-name>
+  
+  <welcome-file-list>
+	<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+	
+	<!-- 配置DispatcherServlet表示，该工程将采用springmvc的方式，启动时也会默认在
+	/WEB-INF目录下查找XXX-servlet.xml作为配置文件，XXX就是DispatcherServlet的名字，
+	该文件中将配置两项重要的mvc特性：
+	HandlerMapping，负责为DispatcherServlet这个前端控制器的请求查找Controller
+	ViewResolver，负责为DispatcherServlet查找ModelAndView的视图解析器。
+	 -->
+	<servlet>
+	<servlet-name>test2</servlet-name>
+	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>test2</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	
+	<!-- 配置ContextLoaderListener表示，该工程要以spring的方式启动，
+	启动时会默认在/WEB-INF目录下查找applicationContext.xml作为spring
+	容器的配置文件 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
+</web-app>
+
+

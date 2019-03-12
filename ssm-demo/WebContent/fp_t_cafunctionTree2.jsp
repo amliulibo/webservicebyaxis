@@ -12,6 +12,7 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>ssm主页</title>
+
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath }/jquery-easyui-1.3.3/themes/default/easyui.css">
 <link rel="stylesheet" type="text/css"
 	href="${pageContext.request.contextPath }/jquery-easyui-1.3.3/themes/icon.css">
