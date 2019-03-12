@@ -21,5 +21,13 @@ public class LoginController {
 		return mView;
 	}
 	
+	@RequestMapping(value="greeting")
+	public ModelAndView greeting(HttpServletRequest request,HttpServletResponse response,LoginForm command)
+	{
+		String username=command.getUsername();
+		ModelAndView mView=new ModelAndView("login/greeting","command","LOGIN SUCCESS,"+username);
+		return mView;
+	}
+	
 	
 }
