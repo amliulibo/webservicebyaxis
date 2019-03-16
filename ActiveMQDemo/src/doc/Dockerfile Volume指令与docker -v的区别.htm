@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head id="Head1"><style id="znBdcsStyle" type="text/css">.bdcs-container .bdcs-main,.bdcs-container .bdcs-main *{box-sizing:content-box;margin:0;padding:0;float:none;clear:none;overflow:hidden;white-space:nowrap;word-wrap:normal;border:0;background:0 0;width:auto;height:auto;max-width:none;min-width:none;max-height:none;min-height:none;border-radius:0;box-shadow:none;transition:none;text-align:left}.bdcs-container .bdcs-clearfix:after{content:'';display:block;clear:both;height:0}.bdcs-container .bdcs-clearfix{zoom:1}.bdcs-container .bdcs-main{overflow:visible}.bdcs-container .bdcs-search{display:block;overflow:visible;position:relative;border-style:solid}.bdcs-container .bdcs-search-form-input-wrap{display:inline-block}.bdcs-container .bdcs-search-form-input{border-width:1px;border-style:solid;display:inline-block;vertical-align:top;text-indent:5px;background-color:#fff;float:left}.bdcs-container .bdcs-search-form-input:focus{border-width:1px;border-style:solid;outline:0}.bdcs-container .bdcs-search-form-submit-wrap{display:inline-block}.bdcs-container .bdcs-search-form-submit{display:inline-block;cursor:pointer;border-width:1px;border-style:solid;vertical-align:top;text-align:center;width:50px;//_overflow:hidden}.bdcs-container .bdcs-search-form-submit-magnifier{width:45px;padding:0;text-indent:-999em;overflow:hidden;background:url(http://znsv.baidu.com/static/customer-search/component/search/magnifier-icon.png) no-repeat center center;_background:url(http://znsv.baidu.com/static/customer-search/component/search/magnifier-icon_ie6.png) no-repeat center center}div#default-searchbox .default-channel-meun{position:relative;width:75px;display:inline-block;vertical-align:middle;cursor:pointer;background:#fff;float:left;overflow:visible}div#default-searchbox .default-channel-current{border:1px solid;position:relative;width:100%;border-right:0}div#default-searchbox .default-channel-current span{margin-left:8px}div#default-searchbox .default-channel-current i{overflow:hidden;width:0;height:0;border-width:6px 6px 0;border-color:#9E9E9E #fff;border-style:solid;display:block;position:absolute;right:10px;top:11px}div.cse-default-channel-container{display:block;position:absolute;z-index:30061000000}div.cse-default-channel-container .default-channel-list{display:none;width:99%;list-style:none;background:#fff;border:1px solid #DDD;border-top:0;margin:0;padding:0}div.cse-default-channel-container .default-channel-list li{background:0 0;line-height:24px;list-style:none;display:block;padding-left:7px;cursor:pointer}div.cse-default-channel-container .default-channel-list li:hover{background:#DDD}.bdcs-container .bdcs-search-form-input-wrap{}.bdcs-container .bdcs-search-form-input-notspan{margin-left:0px;font-family:Arial,SimSun,sans-serif;color:#000000;font-size:14px;}.bdcs-container .bdcs-search-form-input .icon-nofocus{left:;right:;top:;height:;width:;}.bdcs-container .bdcs-search{width:299px;height:36px;overflow:hidden;border-color:#1a89ed;border-radius:5px;border-width:2px;box-shadow:none;background-color:none;}.bdcs-container .bdcs-search-form-input{border-color:#ffffff;margin-right:0px;width:246px;height:34px;line-height:34px;font-family:Arial,SimSun,sans-serif;color:#000000;font-size:14px;border-radius:1px;background-color:#FFFFFF;}.bdcs-container .bdcs-search-form-input:focus{border-color:#1a89ed;}.bdcs-container .bdcs-search-form-submit-wrap{}.bdcs-container .bdcs-search-form-submit{border-color:#1c89ea;height:34px;width:50px;background-color:#1c89ea;color:#ffffff;font-family:Arial,SimSun,sans-serif;font-size:14px;border-radius:0px;}.bdcs-container .bdcs-search-form-submit{*height:36px;*margin-top:1px;}.bdcs-container .bdcs-search-form-submit{height:36px;}.bdcs-container .bdcs-search-form-submit{line-height:34px;}.bdcs-container .bdcs-search-form-input{margin-right:-1px;}#bdcs-rec{display:none;}</style><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="keywords" content="码迷,mamicode.com,互联网,软件开发,开源,asp,asp.net,android,apple,jsp,php,Windows,数据库,HTML,JS,CSS,技术文章,游戏,手机相关"><meta name="description" content="在学习Dockerfile的过程中有个VOLUME命令，很多教程或书中说的是用来定义匿名卷的，其作用如下： 容器运行时应该尽量保持容器存储层不发生写操作，对于数据库类需要保存动态数据的应用，其数据库文件应该保存于卷(volume)中，后面的章节我们会进一步介绍Docker 卷的概念。为了防止运行时用 ..."><title>
+	Dockerfile Volume指令与docker -v的区别
+</title><link href="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/css.css" type="text/css" rel="stylesheet">
+<script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/osd.js"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/ca-pub-8616102841876629.js"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/show_ads_impl.js" id="google_shimpl"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/push.js"></script><script type="text/javascript" async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/js"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/hm.js"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/mamicode_adload.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?408b7cb341bcbccbc03cf31a305b01dd";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+<link rel="stylesheet" type="text/css" href="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/prettify.css">
+    <script type="text/javascript" charset="utf-8" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/prettify.js"></script>
+<link rel="preload" href="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/integrator.js" as="script"><script type="text/javascript" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/integrator.js"></script><link rel="preload" href="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/show_ads_impl.js" as="script"></head>
+<body>
+    <div class="width100bi height23px divbackgroundcolor overflowauto">
+    <div class="width1000px divmargin0auto">
+        <div class="divfloatleft">
+        </div>
+        <div class="divfloatright">
+            <div id="logintopdescription" class="paddingtop3"><a href="http://member.mamicode.com/login.aspx">[登录]</a>&nbsp;&nbsp;<a href="http://member.mamicode.com/reg.aspx">[注册]</a></div>
+        </div>
+    </div>
+</div>
+<div class="width1000px divmargin0auto margintop20bottom20 overflowauto">
+    <div class="width120px divfloatleft">
+        <a href="http://www.mamicode.com/" title="码迷，mamicode.com">
+            <img src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/logo.png" alt="码迷，mamicode.com" width="109" height="60" border="0">
+        </a>
+    </div>
+    <div class="width880px divfloatright">
+        <div class="menuDiv">
+            <ul>
+                <li class="bottomline width10px">&nbsp;</li>
+                <li id="default-aspx" class="title0"><a href="http://www.mamicode.com/" title="码迷，mamicode.com">首页</a></li>
+                <li id="infolist-2" class="title1"><a href="http://www.mamicode.com/info-list-2-1.html" title="Web开发">Web开发</a></li>
+                <li id="infolist-3" class="title1"><a href="http://www.mamicode.com/info-list-3-1.html" title="Windows程序">Windows程序</a></li>
+                <li id="infolist-4" class="title1"><a href="http://www.mamicode.com/info-list-4-1.html" title="编程语言">编程语言</a></li>
+                <li id="infolist-5" class="title1"><a href="http://www.mamicode.com/info-list-5-1.html" title="数据库">数据库</a></li>
+                <li id="infolist-6" class="title1"><a href="http://www.mamicode.com/info-list-6-1.html" title="移动开发">移动开发</a></li>
+                <li id="infolist-8" class="title1"><a href="http://www.mamicode.com/info-list-8-1.html" title="系统相关">系统相关</a></li>
+                <li id="infolist-9" class="title1"><a href="http://www.mamicode.com/info-list-9-1.html" title="微信">微信</a></li>
+                <li id="infolist-11" class="title1"><a href="http://www.mamicode.com/info-list-11-1.html" title="其他好文">其他好文</a></li>
+                <li id="memberhtml" class="title1"><a href="http://www.mamicode.com/member.html" title="会员">会员</a></li>
+                <li class="bottomline width10px">&nbsp;</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <script type="text/javascript">        mamicode_adload('top_menu');</script>
+    <div class="divdaohang">
+        <div class="divtitlefont">
+            <a href="http://www.mamicode.com/" title="码迷首页">首页</a>
+            <span id="lbltitle"> &gt; <a href="http://www.mamicode.com/infolist-11-1.html">其他好文</a> &gt; 详细</span>
+        </div>
+    </div>
+    <div class="divmain">
+        <div class="width70bi divfloatleft" style="min-height: 2000px;">
+            <div class="marginright20">
+                <script type="text/javascript">                    mamicode_adload('title_before');</script>
+                <div class="detailtitle divtextaligncenter divborderbottomdotted">
+                    <h1 id="Htitle" class="detailtitle">Dockerfile Volume指令与docker -v的区别</h1>
+                </div>
+                <div class="detail1 divtextaligncenter">
+                    时间：<span id="Label2" class="colorlv">2018-11-26 02:09:00</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp; 阅读：<span id="Label1" class="colorCheng">337</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp; 评论：<span id="lblcommentcount" class="colorCheng">0</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp; 收藏：<span id="lblfavorite" class="colorCheng">0</span>
+                    &nbsp;&nbsp;&nbsp;&nbsp; <a id="infofavorite" class="acursorpointer" onclick="infofavorite_click();">[点我收藏+]</a>
+                </div>
+                <script type="text/javascript">                    mamicode_adload('content_before');</script><div class="margintop20bottom20"><script async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/adsbygoogle.js"></script><ins class="adsbygoogle" style="display: block; text-align: center; height: 173px;" data-ad-format="fluid" data-ad-layout="in-article" data-ad-client="ca-pub-8616102841876629" data-ad-slot="3249086282" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:173px;margin:0;padding:0;position:relative;visibility:visible;width:691px;background-color:transparent;"><ins id="aswift_0_anchor" style="display:block;border:none;height:173px;margin:0;padding:0;position:relative;visibility:visible;width:691px;background-color:transparent;"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0px;width:691px;height:173px;" width="691" height="173" frameborder="0"></iframe></ins></ins></ins><script>     (adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+                <div class="detailcontennt">
+                    <span id="Label3"><p>标签：<a href="http://www.mamicode.com/so/1/uil" title="uil">uil</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/ecif" title="ecif">ecif</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/docker" title="docker">docker</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/-name" title="-name">-name</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/class" title="class">class</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/spec" title="spec">spec</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/%e5%ae%9a%e4%b9%89" title="定义">定义</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/redis" title="redis">redis</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/bind" title="bind">bind</a>&nbsp;&nbsp;&nbsp;</p><p><span style="font-size: 16px"><span style="font-size: 16px">在学习Dockerfile的过程中有个VOLUME命令，很多教程或书中说的是用来定义匿名卷的，其作用如下：</span></span></p>
+<p><span style="font-size: 16px">　　容器运行时应该尽量保持容器存储层不发生写操作，对于数据库类需要保存<br>动态数据的应用，其数据库文件应该保存于卷(volume)中，后面的章节我们会进一步介绍<br>Docker 卷的概念。为了防止运行时用户忘记将动态文件所保存目录挂载为卷，在<br>Dockerfile 中，我们可以事先指定某些目录挂载为匿名卷，这样在运行时如果用户不指定挂<br>载，其应用也可以正常运行，不会向容器存储层写入大量数据。<br>　　这领我们想起docker的run命令中的 "-v"参数的作用</span></p>
+<div class="Highlighter">
+<pre class="brush:csharp;gutter:true;"># docker run --help | grep volume
+  -v, --volume list                    Bind mount a volume
+      --volume-driver string           Optional volume driver for the container
+      --volumes-from list              Mount volumes from the specified
+</pre>
+</div>
+<p>　　 那么Dockerfile中的VOLUME指令实际使用中是不是就是跟docker 
+run中的-v参数一样是将宿主机的一个目录绑定到容器中的目录以达到共享目录的作用呢？并不然，其实VOLUME指令只是起到了声明了容器中的目录作为
+匿名卷，但是并没有将匿名卷绑定到宿主机指定目录的功能。但是当我们生成镜像的Dockerfile中以Volume声明了匿名卷，并且我们以这个镜像
+run了一个容器的时候，docker会在安装目录下的指定目录下面生成一个目录来绑定容器的匿名卷（这个指定目录不同版本的docker会有所不同）。
+如我使用的版本如下：</p>
+<div class="Highlighter">
+<pre class="brush:csharp;gutter:true;"># docker --version
+Docker version 18.09.0, build 4d60db4　　　　//docker版本
+# pwd
+/var/lib/docker/volumes　　　　　　　　　　//默认绑定容器的匿名卷的目录
+# ll
+total 32
+drwxr-xr-x. 3 root root  4096 Nov 25 20:18 593fda6d7b8296bfca22894b326727c734133eebb11c9bc2c25a73b892157a37　　//其中一个容器的共享目录文件夹
+drwxr-xr-x. 3 root root  4096 Nov 25 20:14 78d890eeb15ac6295484d5e84e97928e981b01501fa40bac40b965fc9e54899a　　//其中一个容器的共享目录文件夹
+-rw-------. 1 root root 32768 Nov 25 20:18 metadata.db
+</pre>
+</div>
+<p>&nbsp;　　就是说当Dockerfile中声明了匿名卷但是run的时候没有使用 -v绑定匿名卷的话那么docker就会在/var/lib/docker/volumes这个目录下创建一个目录来绑定匿名卷。</p>
+<p>　　所以真正使用的时候我们在Dockerfile构建镜像的时候如：</p>
+<div class="Highlighter">
+<pre class="brush:csharp;gutter:true;">FROM centos:latest
+RUN groupadd -r redis &amp;&amp; useradd  -r -g redis redis
+RUN yum -y update &amp;&amp;  yum -y install epel-release &amp;&amp; yum -y install redis &amp;&amp; yum -y install net-tools
+
+RUN mkdir -p /config &amp;&amp; chown -R redis:redis /config
+
+
+VOLUME /share/data　　　　　　#声明容器中/share/data为匿名卷
+
+
+EXPOSE 6379
+</pre>
+</div>
+<p>&nbsp;　　那么使用该Dockerfile构建镜像的为</p>
+<div class="Highlighter">
+<pre class="brush:csharp;gutter:true;"># docker build -t image-redis　　　　//构建镜像image-redis
+......
+#docker run -itd -name redis1 -v /data:/share/data image-redis　　　　//运行一个容器并且将当前机器的/data目录绑定到容器的匿名卷中
+.....
+#docker run -itd  -name redis2 image-redis 　　　　//运行一个容器但是不绑定目录到容器的匿名卷，这时候再/var/lib/docker/volumes（不同版本目录不一样）中就会创建一个目录绑定匿名卷
+.....
+</pre>
+</div>
+<p>&nbsp;　　以上为我实验的结果，记录一下备忘。</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="font-size: 18px">　　参考链接：<a href="http://dockone.io/article/128" target="_blank">http://dockone.io/article/128</a></span></p><p><a href="http://www.mamicode.com/info-detail-2531988.html" title="Dockerfile Volume指令与docker -v的区别,mamicode.com" style="color:#ffffff" target="_blank">Dockerfile Volume指令与docker -v的区别</a></p><p>标签：<a href="http://www.mamicode.com/so/1/uil" title="uil">uil</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/ecif" title="ecif">ecif</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/docker" title="docker">docker</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/-name" title="-name">-name</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/class" title="class">class</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/spec" title="spec">spec</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/%e5%ae%9a%e4%b9%89" title="定义">定义</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/redis" title="redis">redis</a>&nbsp;&nbsp;&nbsp;<a href="http://www.mamicode.com/so/1/bind" title="bind">bind</a>&nbsp;&nbsp;&nbsp;</p><p>原文地址：https://www.cnblogs.com/walterfong/p/10017976.html</p></span>
+                </div>
+                <div id="divcomment">
+                    <div>
+                        <div class="divtextaligncenter paddingright2 overflowauto">
+                            <div class="detailcai" id="infono" onclick="infono_click();">
+                                <div class="detailcai1 colorboldlan">
+                                    踩</div>
+                                <div class="detailcai2 colorboldlan">
+                                    (<span id="spanNo">0</span>)</div>
+                            </div>
+                            <div class="detailzan" id="infoyes" onclick="infoyes_click();">
+                                <div class="detailzan1 colorboldHong">
+                                    赞</div>
+                                <div class="detailzan2 colorboldHong">
+                                    (<span id="spanYes">0</span>)</div>
+                            </div>
+                        </div>
+                        <div class="divtextalignright margintop10">
+                            <div class="width100bi paddingleft10right10">
+                                <span id="spanYesContent" class="colorboldHong"></span>&nbsp; <span id="spanNoContent" class="colorboldlan"></span>&nbsp; <span id="spanBadContent" class="colorboldHong">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divtextalignright margintop10">
+                        <span class="detailjubao" id="infobad" onclick="infobad_click();">举报</span>
+                    </div>
+                    <script type="text/javascript">                        mamicode_adload('content_after');</script><div class="margintop20">    <div class="divfloatleft">        <script async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/adsbygoogle.js"></script>        <!-- mamicode-infodetail-336x280-1 -->        <ins class="adsbygoogle" style="display: inline-block; width: 336px; height: 280px" data-ad-client="ca-pub-8616102841876629" data-ad-slot="6851602680" data-adsbygoogle-status="done"><ins id="aswift_1_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent;"><ins id="aswift_1_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent;"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;border:0px;width:336px;height:280px;" width="336" height="280" frameborder="0"></iframe></ins></ins></ins>        <script>            (adsbygoogle = window.adsbygoogle || []).push({});        </script>    </div>    <div class="divfloatright">        <script async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/adsbygoogle.js"></script>        <!-- mamicode-infodetail-336x280-2 -->        <ins class="adsbygoogle" style="display: inline-block; width: 336px; height: 280px" data-ad-client="ca-pub-8616102841876629" data-ad-slot="8328335888" data-adsbygoogle-status="done"><ins id="aswift_2_expand" style="display:inline-table;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent;"><ins id="aswift_2_anchor" style="display:block;border:none;height:280px;margin:0;padding:0;position:relative;visibility:visible;width:336px;background-color:transparent;"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;border:0px;width:336px;height:280px;" width="336" height="280" frameborder="0"></iframe></ins></ins></ins>        <script>            (adsbygoogle = window.adsbygoogle || []).push({});        </script>    </div>    <div class="divfloatclear">    </div></div>
+                    <div id="comment" class="divtextalignleft margintop20">
+                        <div class="detailpinglun1">
+                            <span class="detailpinglun2 title6">评论</span> <span class="detailpinglun3">一句话评论（<span id="commentCount" class="colorboldHong">0</span>）</span>
+                        </div>
+                        <div class="paddingtop20">
+                            
+                            <div id="commentlistend" name="commentlistend" class="divtextaligncenter margintop20">
+                                <span id="lblpage">共<span class="pagecolorc">0</span>条&nbsp;&nbsp;</span>
+                            </div>
+                        </div>
+                        <div class="margintop20">
+                            <form method="post" action="/ajaxjs/info_detail_commentadd.aspx">
+                            <div class="divtextalignleft paddingtop20">
+                                <div id="commenthf" class="divbackgroundcolor1">
+                                </div>
+                                <div>
+                                    <textarea name="tbcommentcontent" id="tbcommentcontent" class="tb" style="width: 680px;
+                                        height: 120px;"></textarea>
+                                </div>
+                            </div>
+                            <div class="divtextalignright paddingtop10 ">
+                                <span id="addCommentTishi" class="colorboldHong">登录后才能评论！</span>
+                                <span id="loginno"><input type="button" class="mbtn1" value="登录" onclick="location.href='http://member.mamicode.com/login.aspx?returnUrl='+document.URL.replace(new RegExp('&amp;', 'g'), '(_)')"></span>
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <script type="text/javascript">                    mamicode_adload('content_bottom');</script>
+            </div>
+        </div>
+        <div class="width30bi divfloatright">
+            
+            <div class="paddingbottom20">
+    <script type="text/javascript">        (function () { document.write(unescape('%3Cdiv id="bdcs"%3E%3C/div%3E')); var bdcs = document.createElement('script'); bdcs.type = 'text/javascript'; bdcs.async = true; bdcs.src = 'http://znsv.baidu.com/customer_search/api/js?sid=7490613033886828738' + '&plate_url=' + encodeURIComponent(window.location.href) + '&t=' + Math.ceil(new Date() / 3600000); var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(bdcs, s); })();</script><div id="bdcs"><div class="bdcs-container"><meta http-equiv="x-ua-compatible" content="IE=9">   <!-- 嵌入式 -->  <div class="bdcs-main bdcs-clearfix" id="default-searchbox">      <div class="bdcs-search bdcs-clearfix" id="bdcs-search-inline">          <form action="http://zhannei.baidu.com/cse/search" method="get" target="_blank" class="bdcs-search-form" autocomplete="off" id="bdcs-search-form">              <input type="hidden" name="s" value="7490613033886828738">              <input type="hidden" name="entry" value="1">                                                                        <input type="text" name="q" class="bdcs-search-form-input" id="bdcs-search-form-input" placeholder="请输入关键词" style="height: 36px; line-height: 36px;">              <input type="submit" class="bdcs-search-form-submit " id="bdcs-search-form-submit" value="搜索">                       </form>      </div>                  </div>                           </div></div>
+</div>
+
+            <script type="text/javascript">                mamicode_adload('right_top');</script><div class="paddingbottom10">    <script async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/adsbygoogle.js"></script>    <!-- 1-mamicode-right-300x600 -->    <ins class="adsbygoogle" style="display: inline-block; width: 300px; height: 600px" data-ad-client="ca-pub-8616102841876629" data-ad-slot="8947049888" data-adsbygoogle-status="done"><ins id="aswift_3_expand" style="display:inline-table;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;"><ins id="aswift_3_anchor" style="display:block;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_3" name="aswift_3" style="left:0;position:absolute;top:0;border:0px;width:300px;height:600px;" width="300" height="600" frameborder="0"></iframe></ins></ins></ins>    <script>        (adsbygoogle = window.adsbygoogle || []).push({});    </script></div>
+            
+<div class="width99bi divborder">
+    <div class="divtitle">
+        <div id="infofile1_div1" class="divfloatleft divtitlefont">
+            分享档案</div>
+        <div class="divfloatright">
+            <a href="http://www.mamicode.com/infotimemore.html" title="分享档案更多" class="colorCheng">更多&gt;</a>
+        </div>
+    </div>
+    <div class="divtextalignleft paddingleft10right10 margintop10bottom10 heightline30px">
+        
+                <a class="taga" href="http://www.mamicode.com/info-time-20190316-1.html" target="_blank" title="2019年03月16日技术分享文章">
+                    2019年03月16日
+                    (277)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190315-1.html" target="_blank" title="2019年03月15日技术分享文章">
+                    2019年03月15日
+                    (666)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190314-1.html" target="_blank" title="2019年03月14日技术分享文章">
+                    2019年03月14日
+                    (822)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190313-1.html" target="_blank" title="2019年03月13日技术分享文章">
+                    2019年03月13日
+                    (786)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190312-1.html" target="_blank" title="2019年03月12日技术分享文章">
+                    2019年03月12日
+                    (672)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190311-1.html" target="_blank" title="2019年03月11日技术分享文章">
+                    2019年03月11日
+                    (633)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190310-1.html" target="_blank" title="2019年03月10日技术分享文章">
+                    2019年03月10日
+                    (687)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190309-1.html" target="_blank" title="2019年03月09日技术分享文章">
+                    2019年03月09日
+                    (613)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190308-1.html" target="_blank" title="2019年03月08日技术分享文章">
+                    2019年03月08日
+                    (681)</a><br>
+            
+                <a class="taga" href="http://www.mamicode.com/info-time-20190307-1.html" target="_blank" title="2019年03月07日技术分享文章">
+                    2019年03月07日
+                    (714)</a><br>
+            
+    </div>
+</div>
+
+            
+<div class="width99bi margintop20 divborder">
+    <div class="divtitle">
+        <div id="infotop2_divtitle" class="divfloatleft divtitlefont">周排行</div>
+        <div class="divfloatright">
+            <img src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/j01.jpg" alt="mamicode.com排行更多图片" width="14" height="14"></div>
+        <div class="divfloatright">
+            <a href="http://www.mamicode.com/info-toplist-11-2-1.html" id="infotop2_amore" title="周排行更多">更多</a></div>
+    </div>
+    <div>
+        <ul>
+            
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-1611211.html" title="RN的像素及布局" target="_blank">
+                        RN的像素及布局
+                        &nbsp;<span class="colorlan">2016-11-17</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-449166.html" title="配眼镜时的光学名词:SPH,CYL,AXIS,OD,OS都是什么意思?" target="_blank">
+                        配眼镜时的光学名词:SPH,CYL,AXIS,OD,OS都是什么意思?
+                        &nbsp;<span class="colorlan">2015-01-29</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-2370482.html" title="PV、UV、GMV" target="_blank">
+                        PV、UV、GMV
+                        &nbsp;<span class="colorlan">2018-07-12</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-1623294.html" title="瑞士军刀包购买选择" target="_blank">
+                        瑞士军刀包购买选择
+                        &nbsp;<span class="colorlan">2016-11-26</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-2179823.html" title="关于vue :style 的几种使用方式" target="_blank">
+                        关于vue :style 的几种使用方式
+                        &nbsp;<span class="colorlan">2018-02-02</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-2319526.html" title="运行代码后出现Process finished with exit code 0是为什么？" target="_blank">
+                        运行代码后出现Process finished with exit code 0是为什么？
+                        &nbsp;<span class="colorlan">2018-06-01</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-2217311.html" title="PyTorch官方中文文档：torch" target="_blank">
+                        PyTorch官方中文文档：torch
+                        &nbsp;<span class="colorlan">2018-03-10</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-1664586.html" title="网红淘宝店的成与败" target="_blank">
+                        网红淘宝店的成与败
+                        &nbsp;<span class="colorlan">2016-12-31</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-1155803.html" title="在线教育会颠覆传统学校吗？" target="_blank">
+                        在线教育会颠覆传统学校吗？
+                        &nbsp;<span class="colorlan">2015-12-21</span> </a>
+                    </li>
+                
+                    <li class="divullititle heightline25px divtextalignleft"><a href="http://www.mamicode.com/info-detail-2089175.html" title="转：tcpdump抓包分析(强烈推荐)" target="_blank">
+                        转：tcpdump抓包分析(强烈推荐)
+                        &nbsp;<span class="colorlan">2017-11-13</span> </a>
+                    </li>
+                
+        </ul>
+    </div>
+</div>
+
+            <script type="text/javascript">                mamicode_adload('right_bottom');</script><div style="margin-top:20px;width:300px;">    <script async="" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/adsbygoogle.js"></script>    <!-- mamicode-right-xuanting-300x600 -->    <ins class="adsbygoogle" style="display: inline-block; width: 300px; height: 600px" data-ad-client="ca-pub-8616102841876629" data-ad-slot="4406515082" data-adsbygoogle-status="done"><ins id="aswift_4_expand" style="display:inline-table;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;"><ins id="aswift_4_anchor" style="display:block;border:none;height:600px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;"><iframe marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" onload="var i=this.id,s=window.google_iframe_oncopy,H=s&amp;&amp;s.handlers,h=H&amp;&amp;H[i],w=this.contentWindow,d;try{d=w.document}catch(e){}if(h&amp;&amp;d&amp;&amp;(!d.body||!d.body.firstChild)){if(h.call){setTimeout(h,0)}else if(h.match){try{h=s.upd(h,i)}catch(e){}w.location.replace(h)}}" id="aswift_4" name="aswift_4" style="left:0;position:absolute;top:0;border:0px;width:300px;height:600px;" width="300" height="600" frameborder="0"></iframe></ins></ins></ins>    <script>        (adsbygoogle = window.adsbygoogle || []).push({});    </script></div>
+        </div>
+        <div class="divfloatclear">
+        </div>
+    </div>
+    <script type="text/javascript">        mamicode_adload('bottom');</script>
+    <div class="width1000px divmargin0auto paddingtop20bottom20">
+    <div class="width1000px divborder margintop20">
+        <div class="youqingtitle">
+            <a title="友情链接">友情链接</a>
+        </div>
+        <div class="youqingcontent">
+            <a href="http://www.lightinit.com/" target="_blank" title="互联网产品定制开发专家">兰亭集智</a>&nbsp;&nbsp;<a href="http://www.guozhihua.net/" target="_blank">国之画</a>&nbsp;&nbsp;<a href="http://tongji.baidu.com/" target="_blank">百度统计</a>&nbsp;&nbsp; <a href="http://www.cnzz.com/" target="_blank">
+                        站长统计</a>&nbsp;&nbsp;<a href="http://www.aliyun.com/" target="_blank">阿里云</a>&nbsp;&nbsp;<a href="http://www.cnplugins.com/" target="_blank">chrome插件</a>
+        </div>
+    </div>
+</div>
+<div class="bottomdiv">
+    <div class="width1000px divmargin0auto paddingtop20">
+        <div class="height30px divtextalignleft">
+            <a href="http://www.mamicode.com/about.html" title="mamicode.com关于我们">关于我们</a> - <a href="http://www.mamicode.com/contactus.html" title="mamicode.com联系我们">联系我们</a> - <a href="http://www.mamicode.com/guest.html" title="mamicode.com留言反馈">留言反馈</a>
+        </div>
+        <div class="height30px divtextalignleft">
+            © 2014 <a href="http://www.mamicode.com/" target="_blank" title="mamicode.com,技术分享">mamicode.com</a>
+            版权所有 京ICP备13008772号-2
+        </div>
+        <div class="divtextalignleft">
+            <span class="colorlan">迷上了代码！</span>
+        </div>
+        <div class="paddingtop20">
+            <script type="text/javascript">                var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://"); document.write(unescape("%3Cspan id='cnzz_stat_icon_1254666564'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1254666564%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script><span id="cnzz_stat_icon_1254666564"><a href="https://www.cnzz.com/stat/website.php?web_id=1254666564" target="_blank" title="站长统计"><img src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/pic1.gif" vspace="0" hspace="0" border="0"></a></span><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/z_stat.php" type="text/javascript"></script><script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/core.php" charset="utf-8" type="text/javascript"></script>
+            <script>
+                (function () {
+                    var bp = document.createElement('script');
+                    var curProtocol = window.location.protocol.split(':')[0];
+                    if (curProtocol === 'https') {
+                        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+                    }
+                    else {
+                        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+                    }
+                    var s = document.getElementsByTagName("script")[0];
+                    s.parentNode.insertBefore(bp, s);
+                })();
+            </script>
+        </div>
+    </div>
+</div>
+
+    <script type="text/javascript">        var mid = ''; var id = '2531988'; var idm = '95950f'; var commentitemcount = '0'; var memberhost = 'http://member.mamicode.com/'; prettyPrint(); </script>
+    <script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/infodetail.js" type="text/javascript" charset="utf-8"></script>
+    <script src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/member.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/mamicodejs.js"></script>
+
+
+<iframe id="google_osd_static_frame_2098779759522" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;"></iframe></body><iframe id="google_esf" name="google_esf" src="Dockerfile%20Volume%E6%8C%87%E4%BB%A4%E4%B8%8Edocker%20-v%E7%9A%84%E5%8C%BA%E5%88%AB_files/zrt_lookup.htm" style="display: none;" data-ad-client="ca-pub-8616102841876629"></iframe></html>

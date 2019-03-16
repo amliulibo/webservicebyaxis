@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="origin">
+    <title>理解Docker（8）：Docker 存储之卷（Volume） - SammyLiu - 博客园</title>
+<meta property="og:description" content="（1）Docker 安装及基本用法 （2）Docker 镜像 （3）Docker 容器的隔离性 - 使用 Linux namespace 隔离容器的运行环境 （4）Docker 容器的隔离性 - 使用">
+    <link type="text/css" rel="stylesheet" href="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.css">
+<link id="MainCss" type="text/css" rel="stylesheet" href="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-sea.css">
+<link type="text/css" rel="stylesheet" href="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/207042.css">
+<link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/bundle-sea-mobile.css">
+    <link title="RSS" type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/sammyliu/rss">
+    <link title="RSD" type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/sammyliu/rsd.xml">
+<link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/sammyliu/wlwmanifest.xml">
+    <script src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/osd.js"></script><script src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_rendering_319.js"></script><script async="" src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/analytics.js"></script><script type="text/javascript" src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/encoder.js"></script><script src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/jquery-2.js"></script>
+    <script>var currentBlogId=207042;var currentBlogApp='sammyliu',cb_enable_mathjax=false;var isLogined=false;</script>
+    <script src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/blog-common.js" type="text/javascript"></script>
+<link rel="preload" href="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js" as="script"><script type="text/javascript" src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/integrator.js"></script><script src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/pubads_impl_319.js" async=""></script></head>
+<body>
+<a name="top"></a>
+
+<div id="page_begin_html"><script type="text/javascript">window['__document_write_ajax_callbacks__']['4']();</script><script type="text/javascript">window['__document_write_ajax_callbacks__']['1']();</script>
+<font color="blue"><b>本站文章大部分为作者原创，非商业用途转载无需作者授权，但务必在文章标题下面注明作者 刘世民（Sammy Liu）以及可点击的本博客地址超级链接 <a href="http://www.cnblogs.com/sammyliu/"> http://www.cnblogs.com/sammyliu/ </a>，谢谢合作</b></font>
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+<a class="jiathis_button_qzone"></a>
+<a class="jiathis_button_tsina"></a>
+<a class="jiathis_button_tqq"></a>
+<a class="jiathis_button_renren"></a>
+<a class="jiathis_button_kaixin001"></a>
+<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">window['__document_write_ajax_callbacks__']['5']();</script><script type="text/javascript">window['__document_write_ajax_callbacks__']['2']();</script>
+<script type="text/javascript">window['__document_write_ajax_callbacks__']['6']();</script><script type="text/javascript">window['__document_write_ajax_callbacks__']['7']();</script><script type="text/javascript" charset="utf-8">window['__document_write_ajax_callbacks__']['3']();</script>
+<!-- JiaThis Button END --></div><script>load_page_begin_html();</script>
+
+<!--done-->
+<div id="header">
+	
+<!--done-->
+<div class="header">
+	<div class="headerText">
+		<a id="Header1_HeaderTitle" class="headermaintitle" href="https://www.cnblogs.com/sammyliu/">世民谈云计算（微信公众号ID：SammyTalksAboutCloud）</a><br>
+		（声明：本站文章仅代表作者个人观点，与作者所在公司无关。若对我的文章感兴趣，请关注我的微信公众号【ID：SammyTalksAboutCloud】，接收我的更新通知。）
+<p><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/697113-20180814140326081-298986818.png" alt="微信公众号ID：SammyTalksAboutCloud"></p>
+	</div>
+</div>
+
+</div>
+
+<div id="mytopmenu">
+	
+		<div id="mylinks"><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">博客园</a> &nbsp;
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/sammyliu/">首页</a> &nbsp;
+<a id="blog_nav_newpost" class="menu" rel="nofollow" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">新随笔</a> &nbsp;
+ &nbsp;
+<a id="blog_nav_rss" class="menu" href="https://www.cnblogs.com/sammyliu/rss">订阅</a><a id="blog_nav_rss_image" href="https://www.cnblogs.com/sammyliu/rss"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/xml.gif" alt="订阅"></a>&nbsp;
+<a id="blog_nav_admin" class="menu" rel="nofollow" href="https://i.cnblogs.com/">管理</a>
+</div>
+		<div id="mystats"><div id="blog_stats">
+随笔-166&nbsp;
+评论-671&nbsp;
+文章-48&nbsp;
+<!--trackbacks-0-->
+</div></div>
+	
+</div>
+<div id="centercontent">
+	
+        <div id="post_detail">
+<div class="post">
+	<h1 class="postTitle"><a id="cb_post_title_url" class="postTitle2" href="https://www.cnblogs.com/sammyliu/p/5932996.html">理解Docker（8）：Docker 存储之卷（Volume）</a></h1>
+	<div id="cnblogs_post_body" class="blogpost-body"><p>（1）<a href="http://www.cnblogs.com/sammyliu/p/5875470.html" target="_blank">Docker 安装及基本用法</a></p>
+<p>（2）<a href="http://www.cnblogs.com/sammyliu/p/5877964.html%20" target="_blank">Docker 镜像</a></p>
+<p>（3）<a href="http://www.cnblogs.com/sammyliu/p/5878973.html%20" target="_blank">Docker 容器的隔离性 - 使用 Linux namespace 隔离容器的运行环境</a></p>
+<p>（4）<a href="http://www.cnblogs.com/sammyliu/p/5886833.html%20" target="_blank">Docker 容器的隔离性 - 使用 cgroups 限制容器使用的资源</a></p>
+<p>（5）<a href="http://www.cnblogs.com/sammyliu/p/5894191.html%20" target="_blank">Docker 网络</a></p>
+<p>（6）<a href="http://www.cnblogs.com/sammyliu/p/5926343.html%20" target="_blank">若干企业生产环境中的容器网络方案</a></p>
+<p>（7）<a href="http://www.cnblogs.com/sammyliu/p/5931383.html%20" target="_blank">Docker 存储&nbsp;- AUFS</a></p>
+<p>（8）<a href="http://www.cnblogs.com/sammyliu/p/5932996.html%20" target="_blank">Docker 存储 - Volume</a></p>
+<p>&nbsp;</p>
+<h2 id="blogTitle0">1. Docker volume 的几种形态</h2>
+<p>&nbsp; &nbsp; 有状态容器都有数据持久化需求。前一篇文章中提到过，Docker 采用 AFUS 
+分层文件系统时，文件系统的改动都是发生在最上面的容器层。在容器的生命周期内，它是持续的，包括容器在被停止后。但是，当容器被删除后，该数据层也随之
+被删除了。因此，Docker 采用 volume （卷）的形式来向容器提供持久化存储。Docker volume 有如下几种形态。</p>
+<h3 id="blogTitle1">1.1 无 - 不使用 Docker volume</h3>
+<p>默认情况下，容器不使用任何 volume，此时，容器的数据被保存在容器之内，它只在容器的生命周期内存在，会随着容器的被删除而被删除。当然，也可以使用 docker commit 命令将它持久化为一个新的镜像。</p>
+<h3 id="blogTitle2">1.2 Data volume （数据卷）</h3>
+<p>一个 data volume 是容器中绕过 Union 文件系统的一个特定的目录。它被设计用来保存数据，而不管容器的生命周期。因此，当你删除一个容器时，Docker 肯定不会自动地删除一个volume。有如下几种方式来使用 data volume：</p>
+<p>（1）使用 “-v 容器内目录” 形式</p>
+<div class="cnblogs_code">
+<pre>docker run -d -P --name web -v /webapp training/webapp python app.py</pre>
+</div>
+<p>使用 docker inspect 命令可以看出，Docker 将本地一个 _data 目录 mount 为容器内的 webapp 目录了：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #800000;">"</span><span style="color: #800000;">Mounts</span><span style="color: #800000;">"</span><span style="color: #000000;">: [
+            {
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">f143b7f379fb6d012a08656fc950bf6df4bf5a5b90c72f310644aa997620122b</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Source</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/docker/volumes/f143b7f379fb6d012a08656fc950bf6df4bf5a5b90c72f310644aa997620122b/_data</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Destination</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/webapp</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Driver</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Mode</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">RW</span><span style="color: #800000;">"</span>: <span style="color: #0000ff;">true</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Propagation</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">
+            }
+        ],</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>其实，在 web 
+容器被删除后，/var/lib/docker/volumes
+/f143b7f379fb6d012a08656fc950bf6df4bf5a5b90c72f310644aa997620122b/_data 
+目录及其中的内容都还会保留下来，但是，新启动的容器无法再使用这个目录，也就是说，已有的数据不能自动地被重复使用了。</p>
+<p>（2）使用 -v 来挂载一个主机上的目录到容器的目录</p>
+<div class="cnblogs_code">
+<pre>docker run -d -P --name web2 -v /src/webapp:/webapp training/webapp python app.py</pre>
+</div>
+<p>主机上的目录可以是一个本地目录，也可以在一个 NFS share 内，或者在一个已经格式化好了的块设备上。</p>
+<p>其实这种形式和第一种没有本质的区别，容器内对 /webapp 的操作都会反映到主机上的 /src/webapp 目录内。只是，重新启动容器时，可以再次使用同样的方式来将 /src/webapp 目录挂载到新的容器内，这样就可以实现数据持久化的目标。</p>
+<p>（3）使用 -v 来挂载主机上的一个文件到容器内的一个文件</p>
+<div class="cnblogs_code">
+<pre>docker run --rm -it -v ~/.bash_history:/root/.bash_history ubuntu /bin/bash</pre>
+</div>
+<h3 id="blogTitle3">1.3 使用 data container</h3>
+<p>如果要在容器之间共享数据，最好是使用 data container。这种 container 中不会跑应用，而只是挂载一个卷。比如：</p>
+<p>创建一个 data container：</p>
+<div class="cnblogs_code">
+<pre>docker create -v /dbdata --name dbstore training/webapp &nbsp;/bin/true</pre>
+</div>
+<p>启动一个 app container：</p>
+<div class="cnblogs_code">
+<pre>docker run -d -P --name web3 --volumes-<span style="color: #0000ff;">from</span> dbstore training/webapp python app.py</pre>
+</div>
+<p>其实，对 web3 这个容器来说，volume 的本质没变，它只是将 dbstore 容器的 /dbdata 目录映射的主机上的目录映射到自身的 /dbdata 目录。</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #800000;">"</span><span style="color: #800000;">Mounts</span><span style="color: #800000;">"</span><span style="color: #000000;">: [
+            {
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">5341c03f3b94f13f4c86d88ccb0f3b63487adf30dea7ae6b2d06e947235e7330</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Source</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/docker/volumes/5341c03f3b94f13f4c86d88ccb0f3b63487adf30dea7ae6b2d06e947235e7330/_data</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Destination</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/dbdata</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Driver</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Mode</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">RW</span><span style="color: #800000;">"</span>: <span style="color: #0000ff;">true</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Propagation</span><span style="color: #800000;">"</span>: <span style="color: #800000;">""</span><span style="color: #000000;">
+            }
+        ],</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>但是，其好处是，可以不管其目录的临时性而不断地重复使用它。</p>
+<h3 id="blogTitle4">1.4 使用 docker volume 命令</h3>
+<p>Docker 新版本中引入了 docker volume 命令来管理 Docker volume。</p>
+<p>（1）使用默认的 ‘local’ driver 创建一个 volume</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>root@docker1:/home/sammy# docker volume create --<span style="color: #000000;">name vol1
+vol1
+root@docker1:</span>/home/<span style="color: #000000;">sammy# docker volume inspect vol1
+[
+    {
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">vol1</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Driver</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Mountpoint</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/docker/volumes/vol1/_data</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Labels</span><span style="color: #800000;">"</span><span style="color: #000000;">: {},
+        </span><span style="color: #800000;">"</span><span style="color: #800000;">Scope</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">
+    }
+]</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>（2）使用这个 volume</p>
+<div class="cnblogs_code">
+<pre>docker run -d -P --name web4 -v vol1:/volume training/webapp python app.p</pre>
+</div>
+<p>结果还是一样的，即将 vol1 对应的主机上的目录挂载给容器内的 /volume 目录。</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre><span style="color: #800000;">"</span><span style="color: #800000;">Mounts</span><span style="color: #800000;">"</span><span style="color: #000000;">: [
+            {
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Name</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">vol1</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Source</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/var/lib/docker/volumes/vol1/_data</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Destination</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">/volume</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Driver</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">local</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Mode</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">z</span><span style="color: #800000;">"</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">RW</span><span style="color: #800000;">"</span>: <span style="color: #0000ff;">true</span><span style="color: #000000;">,
+                </span><span style="color: #800000;">"</span><span style="color: #800000;">Propagation</span><span style="color: #800000;">"</span>: <span style="color: #800000;">"</span><span style="color: #800000;">rprivate</span><span style="color: #800000;">"</span><span style="color: #000000;">
+            }
+        ],</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<h3 id="blogTitle5">1.5 Volume 删除和孤单 volume 清理</h3>
+<h4>1.5.1 在删除容器时删除 volume</h4>
+<p>可以使用 docker rm -v 命令在删除容器时删除该容器的卷。</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>root@docker1:/home/sammy# docker run -d -P --name web5 -v /webapp training/<span style="color: #000000;">webapp python app.py
+69199905a74cb360935e32f4e99f7f11319f6aa36033a920aa0bae25874f5c69
+root@docker1:</span>/home/<span style="color: #000000;">sammy# docker volume ls
+DRIVER              VOLUME NAME
+local               5341c03f3b94f13f4c86d88ccb0f3b63487adf30dea7ae6b2d06e947235e7330
+local               <span style="color: #0000ff;">838f4dd99721a9445be22a6b42d35e04cb43ad145ecf26107a9025f428587f76</span>
+local               vol1
+root@docker1:</span>/home/sammy# docker rm <span style="color: #0000ff;">-</span><span style="color: #000000;"><span style="color: #0000ff;">v</span>f web5
+web5
+root@docker1:</span>/home/<span style="color: #000000;">sammy# docker volume ls
+DRIVER              VOLUME NAME
+local               5341c03f3b94f13f4c86d88ccb0f3b63487adf30dea7ae6b2d06e947235e7330
+local               vol1</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<h4>1.5.2 批量删除孤单 volumes</h4>
+<p>从上面的介绍可以看出，使用 docker run -v 启动的容器被删除以后，在主机上会遗留下来孤单的卷。可以使用下面的简单方法来做清理：</p>
+<div class="cnblogs_code"><div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div>
+<pre>root@docker1:/home/sammy# <span style="color: #0000ff;">docker volume ls -qf dangling=true</span><span style="color: #000000;">
+244a23f3ab11f17345a68e77f96bb46a8dbaf445760dd86ab0faa07dfbd84236
+c864cfac232e8728b1805abc8c363d324124b38e6297544a8cbbf61d883c7e46
+f143b7f379fb6d012a08656fc950bf6df4bf5a5b90c72f310644aa997620122b
+root@docker1:</span>/home/sammy# <span style="color: #0000ff;">docker volume rm $(docker volume ls -qf dangling=true</span><span style="color: #000000;"><span style="color: #0000ff;">)</span>
+244a23f3ab11f17345a68e77f96bb46a8dbaf445760dd86ab0faa07dfbd84236
+c864cfac232e8728b1805abc8c363d324124b38e6297544a8cbbf61d883c7e46
+f143b7f379fb6d012a08656fc950bf6df4bf5a5b90c72f310644aa997620122b
+root@docker1:</span>/home/<span style="color: #000000;">sammy# <span style="color: #0000ff;">docker volume ls</span>
+DRIVER              VOLUME NAME
+local               5341c03f3b94f13f4c86d88ccb0f3b63487adf30dea7ae6b2d06e947235e7330
+local               vol1</span></pre>
+<div class="cnblogs_code_toolbar"><span class="cnblogs_code_copy"><a href="javascript:void(0);" onclick="copyCnblogsCode(this)" title="复制代码"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/copycode.gif" alt="复制代码"></a></span></div></div>
+<p>github 上有很多脚本可以自动化地清理孤单卷，比如：</p>
+<ul>
+<li><a href="https://github.com/chadoe/docker-cleanup-volumes/blob/master/docker-cleanup-volumes.sh" target="_blank">https://github.com/chadoe/docker-cleanup-volumes/blob/master/docker-cleanup-volumes.sh</a></li>
+<li><a href="https://github.com/meltwater/docker-cleanup" target="_blank">https://github.com/meltwater/docker-cleanup</a>&nbsp;</li>
+</ul>
+<p>1.6 小结</p>
+<p>对以上内容的两点小结：</p>
+<ul>
+<li>容器内的数据是临时性的，它会随着容器生命周期的结束而消失</li>
+<li>默认的 Docker volume （driver = ‘loclal’）不管是哪种形式，本质上都是将容器所在的主机上的一个目录 mount 到容器内的一个目录，因此，它不具备可移植性。</li>
+</ul>
+<h2 id="blogTitle6">2. Flocker：容器的分布式存储平台</h2>
+<p>第一部分提到过，原生的 Docker volume 不具备可移植性。于是，出现了Docker 的分布式卷解决方案 <a href="https://github.com/ClusterHQ/flocker" target="_blank">Flocker</a>。先来看看 Flocker volume 和 Docker 原生 volume 的对比：</p>
+<p><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/697113-20161006134925629-1061688528.jpg" alt=""></p>
+<p>启动一个使用 Flocker 卷的容器：</p>
+<div class="cnblogs_code">
+<pre>docker run --volume-driver flocker -v flocker-volume:/container/dir --name=container-xyz</pre>
+</div>
+<p>它带来的好处包括：</p>
+<ul>
+<li>容器的数据会被写入 Flocker 后端存储而不是主机上，因此，在主机出现故障时可以保证数据不丢失</li>
+<li>在容器迁移时，Flocker 会自动地将卷从一个 host 移植到另一个 host</li>
+</ul>
+<p>Flocker 的结构：</p>
+<p><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/697113-20161006140603692-1864846450.jpg" alt=""></p>
+<h2 id="blogTitle7">&nbsp;</h2></div><div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+<div id="BlogPostCategory">分类: <a href="https://www.cnblogs.com/sammyliu/category/882904.html" target="_blank">Docker</a>,<a href="https://www.cnblogs.com/sammyliu/category/750163.html" target="_blank">Storage</a>,<a href="https://www.cnblogs.com/sammyliu/category/692759.html" target="_blank">基础知识</a>,<a href="https://www.cnblogs.com/sammyliu/category/750167.html" target="_blank">原理</a></div>
+<div id="EntryTag"></div>
+<div id="blog_post_info"><div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(5932996,cb_blogId,1);green_channel_success(this,'谢谢推荐！');">好文要顶</a>
+            <a id="green_channel_follow" onclick="follow('7fb78d04-4675-e411-b908-9dcfd8948a71');" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/sammyliu/" target="_blank"><img src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/20180814132007.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="http://home.cnblogs.com/u/sammyliu/">SammyLiu</a><br>
+            <a href="http://home.cnblogs.com/u/sammyliu/followees">关注 - 30</a><br>
+            <a href="http://home.cnblogs.com/u/sammyliu/followers">粉丝 - 830</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor">荣誉：<a href="http://www.cnblogs.com/expert/" target="_blank">推荐博客</a></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow('7fb78d04-4675-e411-b908-9dcfd8948a71');return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(5932996,'Digg')">
+        <span class="diggnum" id="digg_count">10</span>
+    </div>
+    <div class="buryit" onclick="votePost(5932996,'Bury')">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+<div class="clear"></div>
+<div id="post_next_prev"><a href="https://www.cnblogs.com/sammyliu/p/5931383.html" class="p_n_p_prefix">« </a> 上一篇：<a href="https://www.cnblogs.com/sammyliu/p/5931383.html" title="发布于2016-10-05 21:07">理解Docker（7）：Docker 存储 - AUFS</a><br><a href="https://www.cnblogs.com/sammyliu/p/5955984.html" class="p_n_p_prefix">» </a> 下一篇：<a href="https://www.cnblogs.com/sammyliu/p/5955984.html" title="发布于2016-10-13 17:26">OpenStack Mitaka 版本中的 domain 和 admin</a><br></div>
+</div>
+
+
+	<div class="postDesc">posted on <span id="post-date">2016-10-06 14:44</span> <a href="https://www.cnblogs.com/sammyliu/">SammyLiu</a> 阅读(<span id="post_view_count">34826</span>) 评论(<span id="post_comment_count">3</span>)  <a href="https://i.cnblogs.com/EditPosts.aspx?postid=5932996" rel="nofollow">编辑</a> <a href="#" onclick="AddToWz(5932996);return false;">收藏</a></div>
+</div>
+<script type="text/javascript">var allowComments=true,cb_blogId=207042,cb_entryId=5932996,cb_blogApp=currentBlogApp,cb_blogUserGuid='7fb78d04-4675-e411-b908-9dcfd8948a71',cb_entryCreatedDate='2016/10/6 14:44:00';loadViewCount(cb_entryId);var cb_postType=1;var isMarkdown=false;</script>
+
+</div><a name="!comments"></a><div id="blog-comments-placeholder"><div id="comments_pager_top"></div>
+<!--done-->
+<br>
+<b>评论:</b>
+<div class="feedbackNoItems"></div>
+	
+
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="#3587065" class="layer">#1楼</a><a name="3587065" id="comment_anchor_3587065"></a>
+				 <span class="comment_date">2016-12-22 14:10</span> | <a id="a_comment_author_3587065" href="https://www.cnblogs.com/atliwen/" target="_blank">atliwen</a> <a href="http://msg.cnblogs.com/send/atliwen" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3587065" class="blog_comment_body">求助楼主  <br>docker volume create --name vol1<br>可以指定 挂载文件的路径吗</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3587065,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3587065,'Bury',this)">反对(0)</a></div>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="#3591584" class="layer">#2楼</a><a name="3591584" id="comment_anchor_3591584"></a>[<span class="louzhu">楼主</span>]
+				 <span class="comment_date">2016-12-28 18:39</span> | <a id="a_comment_author_3591584" href="https://www.cnblogs.com/sammyliu/" target="_blank">SammyLiu</a> <a href="http://msg.cnblogs.com/send/SammyLiu" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_3591584" class="blog_comment_body"><a href="#3587065" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,3587065);">@</a>
+atliwen<br>应该不可以，你自己再试试</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(3591584,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(3591584,'Bury',this)">反对(0)</a></div><span id="comment_3591584_avatar" style="display:none;">http://pic.cnblogs.com/face/697113/20180814132007.png</span>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+		<div class="feedbackItem">
+			<div class="feedbackListSubtitle">
+			<a href="#4085841" class="layer">#3楼</a><a name="4085841" id="comment_anchor_4085841"></a><span id="comment-maxId" style="display:none;">4085841</span><span id="comment-maxDate" style="display:none;">2018/10/10 17:42:17</span>
+				 <span class="comment_date">2018-10-10 17:42</span> | <a id="a_comment_author_4085841" href="https://www.cnblogs.com/DHclly/" target="_blank">DHclly</a> <a href="http://msg.cnblogs.com/send/DHclly" title="发送站内短消息" class="sendMsg2This">&nbsp;</a><br>
+				<div align="left"><div id="comment_body_4085841" class="blog_comment_body"><a href="#3587065" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,3587065);">@</a>
+atliwen<br>一个卷相当于是一个磁盘，你觉得可以挂文件么</div><div class="comment_vote"><a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4085841,'Digg',this)">支持(0)</a><a href="javascript:void(0);" class="comment_bury" onclick="return voteComment(4085841,'Bury',this)">反对(0)</a></div><span id="comment_4085841_avatar" style="display:none;">http://pic.cnblogs.com/face/724259/20150528205820.png</span>&nbsp;&nbsp;<span class="comment_actions"></span></div>
+			</div>
+			
+			
+		</div>
+	
+
+
+
+<div id="comments_pager_bottom"></div></div><script type="text/javascript">var commentManager = new blogCommentManager();commentManager.renderComments(0);</script>
+<div id="comment_form" class="commentform">
+<a name="commentform"></a>
+<div id="divCommentShow"></div>
+<div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="#" onclick="return RefreshPage();">刷新页面</a><a href="#top">返回顶部</a></div>
+<div id="comment_form_container"><div class="login_tips">注册用户登录后才能发表评论，请 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login('commentform');">登录</a> 或 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，<a href="http://www.cnblogs.com/">访问</a>网站首页。</div></div>
+<div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+<div id="ad_t2"><a href="https://edu.51cto.com/activity/19.html?source=bky" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-51CTO')">【幸运】99%的人不知道我们有可以帮你薪资翻倍的秘笈！</a><br><a href="http://www.ucancode.com/index.htm" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-工控')">【推荐】超50万C++/C#源码: 大型实时仿真组态图形源码</a><br><a href="https://cloud.baidu.com/campaign/purchase-2019/index.html?track=cp:dsp|pf:pc|pp:chui-bokeyuan-huodong-19caigouji-BCC-neiyeCH-190311|pu:neiyeCH-wenzilian|ci:2019cgj|kw:2105959" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-百度云')">【推荐】百度云“猪”你开年行大运，红包疯狂拿</a><br><a href="https://ke.qq.com/adActivity.html?name=xiangxueketang2" target="_blank" onclick="ga('send', 'event', 'Link', 'click', 'T2-享学')">【推荐】55K刚面完Java架构师岗，这些技术你必须掌握</a><br></div>
+<div id="opt_under_post"></div>
+<script async="async" src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/gpt.js"></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+<script>
+  googletag.cmd.push(function() {
+        googletag.defineSlot('/1090369/C1', [300, 250], 'div-gpt-ad-1546353474406-0').addService(googletag.pubads());
+        googletag.defineSlot('/1090369/C2', [468, 60], 'div-gpt-ad-1539008685004-0').addService(googletag.pubads());
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+  });
+</script>
+<div id="cnblogs_c1" class="c_ad_block">
+    <div id="div-gpt-ad-1546353474406-0" style="height:250px; width:300px;" data-google-query-id="CJrLztSKhuECFQgklgodMG4Dqw"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" scrolling="no" marginwidth="0" marginheight="0" style="border: 0px none; vertical-align: bottom;" srcdoc="" data-google-container-id="1" data-load-complete="true" width="300" height="250" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_news"><div class="itnews c_ad_block"><b>相关博文：</b><br>·  <a href="https://www.cnblogs.com/atliwen/p/6117931.html" target="_blank" onclick="clickRecomItmem(6117931)">Docker run  挂载 volume 记录</a><br>·  <a href="https://www.cnblogs.com/ZachZhou/p/7538347.html" target="_blank" onclick="clickRecomItmem(7538347)">Docker(8)-Docker Compose</a><br>·  <a href="https://www.cnblogs.com/sammyliu/p/5894191.html" target="_blank" onclick="clickRecomItmem(5894191)">理解Docker（5）：Docker 网络</a><br>·  <a href="https://www.cnblogs.com/cheyunhua/p/8961555.html" target="_blank" onclick="clickRecomItmem(8961555)">理解Docker（8）：Docker存储之卷（Volume）</a><br>·  <a href="https://www.cnblogs.com/sammyliu/p/5877964.html" target="_blank" onclick="clickRecomItmem(5877964)">理解Docker（2）：Docker 镜像</a><br></div></div>
+<div id="cnblogs_c2" class="c_ad_block">
+    <div id="div-gpt-ad-1539008685004-0" style="height:60px; width:468px;" data-google-query-id="CJrMz9SKhuECFQgklgodMG4Dqw"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none; display: inline-block; width: 468px; height: 60px;"><iframe style="border: 0px none; vertical-align: bottom;" src="%E7%90%86%E8%A7%A3Docker%EF%BC%888%EF%BC%89%EF%BC%9ADocker%20%E5%AD%98%E5%82%A8%E4%B9%8B%E5%8D%B7%EF%BC%88Volume%EF%BC%89%20-%20SammyLiu%20-%20%E5%8D%9A%E5%AE%A2%E5%9B%AD_files/container.htm" id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" data-is-safeframe="true" data-google-container-id="2" data-load-complete="true" width="468" height="60" frameborder="0"></iframe></div></div>
+</div>
+<div id="under_post_kb"><div class="itnews c_ad_block"><b>最新新闻</b>：<br> ·  <a href="https://news.cnblogs.com/n/621894/" target="_blank">携程飞猪去哪儿等刷单 专业团队称三天提升酒店排名</a><br> ·  <a href="https://news.cnblogs.com/n/621893/" target="_blank">上海这家拨打骚扰电话的公司 监管部门已连夜核查</a><br> ·  <a href="https://news.cnblogs.com/n/621892/" target="_blank">给你打骚扰电话的可能不是人：AI电话一天能打一千通</a><br> ·  <a href="https://news.cnblogs.com/n/621891/" target="_blank">Facebook旗下即时通讯应用尝试用谷歌来打击虚假信息</a><br> ·  <a href="https://news.cnblogs.com/n/621890/" target="_blank">移动聊天Snapchat下月进军游戏平台 欲靠游戏挣钱</a><br>» <a href="http://news.cnblogs.com/" title="IT新闻" target="_blank">更多新闻...</a></div></div>
+<div id="HistoryToday" class="c_ad_block"></div>
+<script type="text/javascript">
+ if(enablePostBottom()) {
+    codeHighlight();
+    fixPostBody();
+    setTimeout(function () { incrementViewCount(cb_entryId); }, 50);
+    deliverT2();
+    deliverC1();
+    deliverC2();    
+    loadNewsAndKb();
+    loadBlogSignature();
+    LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+    GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+    loadOptUnderPost();
+    GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);  
+}
+</script>
+</div>
+
+    
+</div>
+<div id="leftcontent">
+	
+		<div id="leftcontentcontainer">
+			
+<!--done-->
+<div class="newsItem">
+	<div id="blog-news"><div id="profile_block">昵称：<a href="https://home.cnblogs.com/u/sammyliu/">SammyLiu</a><br>园龄：<a href="https://home.cnblogs.com/u/sammyliu/" title="入园时间：2014-11-26">4年3个月</a><br>荣誉：<a href="https://www.cnblogs.com/expert/">推荐博客</a><br>粉丝：<a href="https://home.cnblogs.com/u/sammyliu/followers/">830</a><br>关注：<a href="https://home.cnblogs.com/u/sammyliu/followees/">30</a><div id="p_b_follow"><a href="javascript:void(0);" onclick="follow('7fb78d04-4675-e411-b908-9dcfd8948a71')">+加关注</a></div><script>getFollowStatus('7fb78d04-4675-e411-b908-9dcfd8948a71')</script></div></div><script type="text/javascript">loadBlogNews();</script>
+</div>
+
+			<div id="blog-calendar" style=""><table id="blogCalendar" class="Cal" title="Calendar" cellspacing="0" cellpadding="0">
+	<tbody><tr><td colspan="7"><table class="CalTitle" cellspacing="0">
+		<tbody><tr><td class="CalNextPrev"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/02/01');return false;">&lt;</a></td><td align="center">2019年3月</td><td class="CalNextPrev" align="right"><a href="javascript:void(0);" onclick="loadBlogCalendar('2019/04/01');return false;">&gt;</a></td></tr>
+	</tbody></table></td></tr><tr><th class="CalDayHeader" abbr="日" scope="col" align="center">日</th><th class="CalDayHeader" abbr="一" scope="col" align="center">一</th><th class="CalDayHeader" abbr="二" scope="col" align="center">二</th><th class="CalDayHeader" abbr="三" scope="col" align="center">三</th><th class="CalDayHeader" abbr="四" scope="col" align="center">四</th><th class="CalDayHeader" abbr="五" scope="col" align="center">五</th><th class="CalDayHeader" abbr="六" scope="col" align="center">六</th></tr><tr><td class="CalOtherMonthDay" align="center">24</td><td class="CalOtherMonthDay" align="center">25</td><td class="CalOtherMonthDay" align="center">26</td><td class="CalOtherMonthDay" align="center">27</td><td class="CalOtherMonthDay" align="center">28</td><td align="center">1</td><td class="CalWeekendDay" align="center">2</td></tr><tr><td class="CalWeekendDay" align="center">3</td><td align="center">4</td><td align="center">5</td><td align="center">6</td><td align="center">7</td><td align="center">8</td><td class="CalWeekendDay" align="center">9</td></tr><tr><td class="CalWeekendDay" align="center">10</td><td align="center">11</td><td align="center">12</td><td align="center">13</td><td align="center">14</td><td align="center">15</td><td class="CalTodayDay" align="center">16</td></tr><tr><td class="CalWeekendDay" align="center">17</td><td align="center">18</td><td align="center">19</td><td align="center">20</td><td align="center">21</td><td align="center">22</td><td class="CalWeekendDay" align="center">23</td></tr><tr><td class="CalWeekendDay" align="center">24</td><td align="center">25</td><td align="center">26</td><td align="center">27</td><td align="center">28</td><td align="center">29</td><td class="CalWeekendDay" align="center">30</td></tr><tr><td class="CalWeekendDay" align="center">31</td><td class="CalOtherMonthDay" align="center">1</td><td class="CalOtherMonthDay" align="center">2</td><td class="CalOtherMonthDay" align="center">3</td><td class="CalOtherMonthDay" align="center">4</td><td class="CalOtherMonthDay" align="center">5</td><td class="CalOtherMonthDay" align="center">6</td></tr>
+</tbody></table></div><script type="text/javascript">loadBlogDefaultCalendar();</script><br>
+			<div id="blog-sidecolumn"><div id="sidebar_search" class="sidebar-block"></div><div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">常用链接</h3>
+<ul>
+<li><a href="https://www.cnblogs.com/sammyliu/p/" title="我的博客的随笔列表">我的随笔</a></li><li><a href="https://www.cnblogs.com/sammyliu/MyComments.html" title="我发表过的评论列表">我的评论</a></li><li><a href="https://www.cnblogs.com/sammyliu/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li><li><a href="https://www.cnblogs.com/sammyliu/RecentComments.html" title="我的博客的评论列表">最新评论</a></li><li><a href="https://www.cnblogs.com/sammyliu/tag/" title="我的博客的标签列表">我的标签</a></li>
+</ul>
+<div id="itemListLin_con" style="display:none;">
+
+</div></div><div id="sidebar_toptags" class="sidebar-block">
+<h3 class="catListTitle">我的标签</h3>
+<div id="MyTag">
+<ul>
+<li><a href="https://www.cnblogs.com/sammyliu/tag/GRE/">GRE</a>(1)</li><li><a href="https://www.cnblogs.com/sammyliu/tag/Neutron/">Neutron</a>(1)</li><li><a href="https://www.cnblogs.com/sammyliu/tag/Open%20vSwitch/">Open vSwitch</a>(1)</li><li><a href="https://www.cnblogs.com/sammyliu/tag/OpenStack/">OpenStack</a>(1)</li>
+</ul>
+</div></div><div id="sidebar_categories">
+		<h3 class="catListTitle">随笔分类<span style="font-size:11px;font-weight:normal">(364)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_0" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1214982.html">AWS(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_1" class="listitem" href="https://www.cnblogs.com/sammyliu/category/673482.html">Ceilometer(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_2" class="listitem" href="https://www.cnblogs.com/sammyliu/category/738054.html">Ceph(14)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_3" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669012.html">Cinder(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_4" class="listitem" href="https://www.cnblogs.com/sammyliu/category/882904.html">Docker(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_5" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669014.html">Glance</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_6" class="listitem" href="https://www.cnblogs.com/sammyliu/category/673483.html">Heat(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_7" class="listitem" href="https://www.cnblogs.com/sammyliu/category/882905.html">K8S</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_8" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669015.html">Keystone(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_9" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1141396.html">Kubernetes(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_10" class="listitem" href="https://www.cnblogs.com/sammyliu/category/696699.html">KVM(10)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_11" class="listitem" href="https://www.cnblogs.com/sammyliu/category/660335.html">MessageQueue(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_12" class="listitem" href="https://www.cnblogs.com/sammyliu/category/760556.html">MySQL(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_13" class="listitem" href="https://www.cnblogs.com/sammyliu/category/677824.html">Neutron(17)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_14" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669013.html">Nova(10)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_15" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1348768.html">OpenShift(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_16" class="listitem" href="https://www.cnblogs.com/sammyliu/category/636967.html">OpenStack(41)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_17" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1013510.html">Redis</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_18" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669017.html">Sahara</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_19" class="listitem" href="https://www.cnblogs.com/sammyliu/category/750163.html">Storage(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_20" class="listitem" href="https://www.cnblogs.com/sammyliu/category/750164.html">Swift(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_21" class="listitem" href="https://www.cnblogs.com/sammyliu/category/669016.html">Trove</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_22" class="listitem" href="https://www.cnblogs.com/sammyliu/category/636968.html">Ubuntu(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_23" class="listitem" href="https://www.cnblogs.com/sammyliu/category/670034.html">VMware(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_24" class="listitem" href="https://www.cnblogs.com/sammyliu/category/750168.html">安装和配置(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_25" class="listitem" href="https://www.cnblogs.com/sammyliu/category/761108.html">版本(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_26" class="listitem" href="https://www.cnblogs.com/sammyliu/category/853247.html">备份(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_27" class="listitem" href="https://www.cnblogs.com/sammyliu/category/675177.html">大数据(5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_28" class="listitem" href="https://www.cnblogs.com/sammyliu/category/764760.html">翻译(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_29" class="listitem" href="https://www.cnblogs.com/sammyliu/category/724243.html">高可用（HA）(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_30" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1282643.html">机器学习(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_31" class="listitem" href="https://www.cnblogs.com/sammyliu/category/692759.html">基础知识(23)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_32" class="listitem" href="https://www.cnblogs.com/sammyliu/category/755699.html">监控(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_33" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1298920.html">企业上云(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_34" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1089864.html">日志(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_35" class="listitem" href="https://www.cnblogs.com/sammyliu/category/882903.html">容器(6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_36" class="listitem" href="https://www.cnblogs.com/sammyliu/category/882906.html">容器编排</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_37" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1237437.html">生活随笔(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_38" class="listitem" href="https://www.cnblogs.com/sammyliu/category/748073.html">使用案例(8)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_39" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1273287.html">树莓派(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_40" class="listitem" href="https://www.cnblogs.com/sammyliu/category/792740.html">网络(12)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_41" class="listitem" href="https://www.cnblogs.com/sammyliu/category/758091.html">问题定位(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_42" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1273288.html">物联网(5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_43" class="listitem" href="https://www.cnblogs.com/sammyliu/category/779429.html">行业(27)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_44" class="listitem" href="https://www.cnblogs.com/sammyliu/category/750165.html">性能(4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_45" class="listitem" href="https://www.cnblogs.com/sammyliu/category/638386.html">虚拟化(7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_46" class="listitem" href="https://www.cnblogs.com/sammyliu/category/750167.html">原理(39)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_47" class="listitem" href="https://www.cnblogs.com/sammyliu/category/636969.html">云Cloud(49)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_0_Link_48" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1013509.html">职场(2)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">随笔档案<span style="font-size:11px;font-weight:normal">(166)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_0" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2019/02.html">2019年2月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_1" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2019/01.html">2019年1月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_2" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/12.html">2018年12月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_3" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/11.html">2018年11月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_4" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/10.html">2018年10月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_5" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/09.html">2018年9月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_6" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/08.html">2018年8月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_7" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/06.html">2018年6月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_8" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/05.html">2018年5月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_9" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/04.html">2018年4月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_10" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/02.html">2018年2月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_11" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2018/01.html">2018年1月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_12" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/12.html">2017年12月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_13" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/09.html">2017年9月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_14" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/08.html">2017年8月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_15" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/07.html">2017年7月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_16" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/06.html">2017年6月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_17" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/05.html">2017年5月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_18" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/03.html">2017年3月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_19" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2017/01.html">2017年1月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_20" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/10.html">2016年10月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_21" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/09.html">2016年9月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_22" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/08.html">2016年8月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_23" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/07.html">2016年7月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_24" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/06.html">2016年6月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_25" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/05.html">2016年5月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_26" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/04.html">2016年4月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_27" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/03.html">2016年3月 (9)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_28" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/02.html">2016年2月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_29" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2016/01.html">2016年1月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_30" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/12.html">2015年12月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_31" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/11.html">2015年11月 (7)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_32" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/10.html">2015年10月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_33" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/09.html">2015年9月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_34" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/08.html">2015年8月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_35" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/07.html">2015年7月 (9)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_36" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/06.html">2015年6月 (10)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_37" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/05.html">2015年5月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_38" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/04.html">2015年4月 (11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_39" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/03.html">2015年3月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_40" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/02.html">2015年2月 (6)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_41" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2015/01.html">2015年1月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_1_Link_42" class="listitem" href="https://www.cnblogs.com/sammyliu/archive/2014/12.html">2014年12月 (6)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">文章分类<span style="font-size:11px;font-weight:normal">(23)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_0" class="listitem" href="https://www.cnblogs.com/sammyliu/category/737635.html">Ceph(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_1" class="listitem" href="https://www.cnblogs.com/sammyliu/category/737636.html">GlusterFS</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_2" class="listitem" href="https://www.cnblogs.com/sammyliu/category/674720.html">Web 服务器(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_3" class="listitem" href="https://www.cnblogs.com/sammyliu/category/748285.html">操作系统(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_4" class="listitem" href="https://www.cnblogs.com/sammyliu/category/746263.html">存储</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_5" class="listitem" href="https://www.cnblogs.com/sammyliu/category/674495.html">大数据(2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_6" class="listitem" href="https://www.cnblogs.com/sammyliu/category/674496.html">分布式系统</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_7" class="listitem" href="https://www.cnblogs.com/sammyliu/category/746264.html">服务器(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_8" class="listitem" href="https://www.cnblogs.com/sammyliu/category/1275771.html">日常操作(1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_9" class="listitem" href="https://www.cnblogs.com/sammyliu/category/746262.html">网络(11)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_10" class="listitem" href="https://www.cnblogs.com/sammyliu/category/674493.html">虚拟化(3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_2_Link_11" class="listitem" href="https://www.cnblogs.com/sammyliu/category/674494.html">云(1)</a></li>
+			
+				</ul>
+			
+	
+		<h3 class="catListTitle">文章档案<span style="font-size:11px;font-weight:normal">(45)</span></h3>
+		
+				<ul class="catList">
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_0" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2018/08.html" rel="nofollow">2018年8月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_1" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2018/06.html" rel="nofollow">2018年6月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_2" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2016/10.html" rel="nofollow">2016年10月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_3" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2016/09.html" rel="nofollow">2016年9月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_4" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2016/06.html" rel="nofollow">2016年6月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_5" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2016/05.html" rel="nofollow">2016年5月 (3)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_6" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2015/12.html" rel="nofollow">2015年12月 (4)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_7" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2015/10.html" rel="nofollow">2015年10月 (5)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_8" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2015/09.html" rel="nofollow">2015年9月 (2)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_9" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2015/06.html" rel="nofollow">2015年6月 (1)</a></li>
+			
+				<li class="catListItem"> <a id="CatList_LinkList_3_Link_10" class="listitem" href="https://www.cnblogs.com/sammyliu/archives/2015/04.html" rel="nofollow">2015年4月 (23)</a></li>
+			
+				</ul>
+			
+	
+</div><div id="sidebar_scorerank" class="sidebar-block">
+<h3>积分与排名</h3>
+<ul>
+	<li>
+		积分 -
+		426927
+	</li><li>
+		排名 -
+		450
+	</li>
+</ul>
+</div><div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap">
+<h3 class="catListTitle">最新评论</h3>
+<div class="RecentComment" id="RecentComments">
+	<div id="RecentCommentsBlock"><ul>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/sammyliu/p/6943266.html#4174468">1. Re:从大公司到创业公司，技术人转型怎样转变思路与处事之道？</a></li>
+        <li class="recent_comment_body">很受用，我也准备从开发转向售前了</li>
+        <li class="recent_comment_author">--Rabbit_Dale</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/sammyliu/p/9768966.html#4174463">2. Re:《企业IT架构转型之道》读书笔记</a></li>
+        <li class="recent_comment_body">最近也在看这本书，使用分布式服务相比EBS总线的优势更明显</li>
+        <li class="recent_comment_author">--Rabbit_Dale</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/sammyliu/p/9672966.html#4174454">3. Re:与朋友谈心，也是与自己谈心</a></li>
+        <li class="recent_comment_body">确实存在这样的问题，我现在准备向解决方案架构师方向转型，和客户多接触交流</li>
+        <li class="recent_comment_author">--Rabbit_Dale</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/sammyliu/p/10292133.html#4174225">4. Re:你云我云•兄弟夜谈会 第一季 企业云</a></li>
+        <li class="recent_comment_body">多云纳管，将公有云和私有云管控平台打通，网络互通，传统启用上云的欲望就越大了</li>
+        <li class="recent_comment_author">--Rabbit_Dale</li>
+        <li class="recent_comment_title"><a href="https://www.cnblogs.com/sammyliu/p/10336705.html#4174221">5. Re:你云我云•兄弟夜谈会 第二季 5G</a></li>
+        <li class="recent_comment_body">@花海啊瞎说什么大实话。...</li>
+        <li class="recent_comment_author">--老三的古代</li>
+</ul>
+</div>
+</div>
+</div></div><div id="sidebar_topviewedposts" class="sidebar-block"><div id="topview_posts_wrap">
+<h3 class="catListTitle">阅读排行榜</h3>
+<div class="RecentComment" id="TopViewPosts"> 
+	<div id="TopViewPostsBlock"><ul><li><a href="https://www.cnblogs.com/sammyliu/p/4622563.html">1. Neutron 理解 (1): Neutron 所实现的网络虚拟化 [How Neutron Virtualizes Network](41719)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/5932996.html">2. 理解Docker（8）：Docker 存储之卷（Volume）(34826)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4219974.html">3. 探索 OpenStack 之（9）：深入块存储服务Cinder （功能篇）(34129)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4804037.html">4. 理解 OpenStack + Ceph （1）：Ceph + OpenStack 集群部署和配置(33810)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4543597.html">5. KVM 介绍（2）：CPU 和内存虚拟化(29130)</a></li></ul></div>
+</div>
+</div></div><div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+<h3 class="catListTitle">评论排行榜</h3>
+<div class="RecentComment" id="TopCommentsPosts">
+	<div id="TopFeedbackPostsBlock"><ul><li><a href="https://www.cnblogs.com/sammyliu/p/4622563.html">1. Neutron 理解 (1): Neutron 所实现的网络虚拟化 [How Neutron Virtualizes Network](68)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4985907.html">2. Neutron 理解（14）：Neutron ML2 + Linux bridge + VxLAN 组网(57)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4658746.html">3. Neutron 理解 (8): Neutron 是如何实现虚机防火墙的  [How Neutron Implements Security Group](34)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4419195.html">4. Neutron 理解（5）：Neutron 是如何向 Nova 虚机分配固定IP地址的 （How Neutron Allocates Fixed IPs to Nova Instance）(26)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4627230.html">5. Neutron 理解 (3): Open vSwitch + GRE/VxLAN 组网 [Netruon Open vSwitch + GRE/VxLAN Virutal Network](25)</a></li></ul></div>
+</div></div></div><div id="sidebar_topdiggedposts" class="sidebar-block"><div id="topdigg_posts_wrap">
+<h3 class="catListTitle">推荐排行榜</h3>
+<div class="RecentComment">
+	<div id="TopDiggPostsBlock"><ul><li><a href="https://www.cnblogs.com/sammyliu/p/9672966.html">1. 与朋友谈心，也是与自己谈心(15)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4622563.html">2. Neutron 理解 (1): Neutron 所实现的网络虚拟化 [How Neutron Virtualizes Network](11)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/5932996.html">3. 理解Docker（8）：Docker 存储之卷（Volume）(10)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/5894191.html">4. 理解Docker（5）：Docker 网络(8)</a></li><li><a href="https://www.cnblogs.com/sammyliu/p/4543657.html">5. KVM 介绍（3）：I/O 全虚拟化和准虚拟化 [KVM I/O QEMU Full-Virtualizaiton Para-virtualization](8)</a></li></ul></div>
+</div></div></div></div><script type="text/javascript">loadBlogSideColumn();</script></div>
+	
+</div>
+
+<!--done-->
+<div class="footer">
+	Powered by: <a href="http://www.cnblogs.com/">博客园</a>	模板提供：<a href="http://blog.hjenglish.com/">沪江博客</a>
+	Copyright ©2019 SammyLiu
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+ var BlogDirectory = {
+     /*
+         获取元素位置，距浏览器左边界的距离（left）和距浏览器上边界的距离（top）
+     */
+     getElementPosition:function (ele) {        
+         var topPosition = 0;
+         var leftPosition = 0;
+         while (ele){              
+             topPosition += ele.offsetTop;
+             leftPosition += ele.offsetLeft;        
+             ele = ele.offsetParent;     
+         }  
+         return {top:topPosition, left:leftPosition}; 
+     },
+ 
+     /*
+     获取滚动条当前位置
+     */
+     getScrollBarPosition:function () {
+         var scrollBarPosition = document.body.scrollTop || document.documentElement.scrollTop;
+         return  scrollBarPosition;
+     },
+     
+     /*
+     移动滚动条，finalPos 为目的位置，internal 为移动速度
+     */
+     moveScrollBar:function(finalpos, interval) {
+ 
+         //若不支持此方法，则退出
+         if(!window.scrollTo) {
+             return false;
+         }
+ 
+         //窗体滚动时，禁用鼠标滚轮
+         window.onmousewheel = function(){
+             return false;
+         };
+           
+         //清除计时
+         if (document.body.movement) { 
+             clearTimeout(document.body.movement); 
+         } 
+ 
+         var currentpos =BlogDirectory.getScrollBarPosition();//获取滚动条当前位置
+ 
+         var dist = 0; 
+         if (currentpos == finalpos) {//到达预定位置，则解禁鼠标滚轮，并退出
+             window.onmousewheel = function(){
+                 return true;
+             }
+             return true; 
+         } 
+         if (currentpos < finalpos) {//未到达，则计算下一步所要移动的距离
+             dist = Math.ceil((finalpos - currentpos)/10); 
+             currentpos += dist; 
+         } 
+         if (currentpos > finalpos) { 
+             dist = Math.ceil((currentpos - finalpos)/10); 
+             currentpos -= dist; 
+         }
+         
+         var scrTop = BlogDirectory.getScrollBarPosition();//获取滚动条当前位置
+         window.scrollTo(0, currentpos);//移动窗口
+         if(BlogDirectory.getScrollBarPosition() == scrTop)//若已到底部，则解禁鼠标滚轮，并退出
+         {
+             window.onmousewheel = function(){
+                 return true;
+             }
+             return true;
+         }
+         
+         //进行下一步移动
+         var repeat = "BlogDirectory.moveScrollBar(" + finalpos + "," + interval + ")"; 
+         document.body.movement = setTimeout(repeat, interval); 
+     },
+     
+     htmlDecode:function (text){
+         var temp = document.createElement("div");
+         temp.innerHTML = text;
+         var output = temp.innerText || temp.textContent;
+         temp = null;
+         return output;
+     },
+ 
+     /*
+     创建博客目录，
+     id表示包含博文正文的 div 容器的 id，
+     mt 和 st 分别表示主标题和次级标题的标签名称（如 H2、H3，大写或小写都可以！），
+     interval 表示移动的速度
+     */
+     createBlogDirectory:function (id, mt, st, interval){
+          //获取博文正文div容器
+         var elem = document.getElementById(id);
+         if(!elem) return false;
+         //获取div中所有元素结点
+         var nodes = elem.getElementsByTagName("*");
+         //创建博客目录的div容器
+         var divSideBar = document.createElement('DIV');
+         divSideBar.className = 'sideBar';
+         divSideBar.setAttribute('id', 'sideBar');
+         var divSideBarTab = document.createElement('DIV');
+         divSideBarTab.setAttribute('id', 'sideBarTab');
+         divSideBar.appendChild(divSideBarTab);
+         var h2 = document.createElement('H2');
+         divSideBarTab.appendChild(h2);
+         var txt = document.createTextNode('目录导航');
+         h2.appendChild(txt);
+         var divSideBarContents = document.createElement('DIV');
+         divSideBarContents.style.display = 'none';
+         divSideBarContents.setAttribute('id', 'sideBarContents');
+         divSideBar.appendChild(divSideBarContents);
+         //创建自定义列表
+         var dlist = document.createElement("dl");
+         divSideBarContents.appendChild(dlist);
+         var num = 0;//统计找到的mt和st
+         mt = mt.toUpperCase();//转化成大写
+         st = st.toUpperCase();//转化成大写
+         //遍历所有元素结点
+         for(var i=0; i<nodes.length; i++)
+         {
+             if(nodes[i].nodeName == mt|| nodes[i].nodeName == st)    
+             {
+                 //获取标题文本
+                 var nodetext = nodes[i].innerHTML.replace(/<\/?[^>]+>/g,"");//innerHTML里面的内容可能有HTML标签，所以用正则表达式去除HTML的标签
+                 nodetext = nodetext.replace(/&nbsp;/ig, "");//替换掉所有的&nbsp;
+                 nodetext = BlogDirectory.htmlDecode(nodetext);
+                 //插入锚        
+                 nodes[i].setAttribute("id", "blogTitle" + num);
+                 var item;
+                 switch(nodes[i].nodeName)
+                 {
+                     case mt:    //若为主标题 
+                         item = document.createElement("dt");
+                         break;
+                     case st:    //若为子标题
+                         item = document.createElement("dd");
+                         break;
+                 }
+                 
+                 //创建锚链接
+                 var itemtext = document.createTextNode(nodetext);
+                 item.appendChild(itemtext);
+                 item.setAttribute("name", num);
+                 item.onclick = function(){        //添加鼠标点击触发函数
+                     var pos = BlogDirectory.getElementPosition(document.getElementById("blogTitle" + this.getAttribute("name")));
+                     if(!BlogDirectory.moveScrollBar(pos.top, interval)) return false;
+                 };            
+                 
+                 //将自定义表项加入自定义列表中
+                 dlist.appendChild(item);
+                 num++;
+             }
+         }
+         
+         if(num == 0) return false; 
+         /*鼠标进入时的事件处理*/
+         divSideBarTab.onmouseenter = function(){
+             divSideBarContents.style.display = 'block';
+         }
+         /*鼠标离开时的事件处理*/
+         divSideBar.onmouseleave = function() {
+             divSideBarContents.style.display = 'none';
+         }
+ 
+         document.body.appendChild(divSideBar);
+     }
+     
+ };
+ 
+ window.onload=function(){
+     /*页面加载完成之后生成博客目录*/
+     BlogDirectory.createBlogDirectory("cnblogs_post_body","h2","h3",20); }
+</script><script type="text/javascript">
+var jiathis_config={
+	summary:"",
+	shortUrl:false,
+	hideMore:false
+}
+</script><div class="sideBar" id="sideBar"><div id="sideBarTab"><h2>目录导航</h2></div><div style="display: none;" id="sideBarContents"><dl><dt name="0">1. Docker volume 的几种形态</dt><dd name="1">1.1 无 - 不使用 Docker volume</dd><dd name="2">1.2 Data volume （数据卷）</dd><dd name="3">1.3 使用 data container</dd><dd name="4">1.4 使用 docker volume 命令</dd><dd name="5">1.5 Volume 删除和孤单 volume 清理</dd><dt name="6">2. Flocker：容器的分布式存储平台</dt><dt name="7"></dt></dl></div></div><iframe id="google_osd_static_frame_5873940501729" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;"></iframe></body></html>
