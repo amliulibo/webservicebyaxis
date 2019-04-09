@@ -1,5 +1,6 @@
 package llb;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import javax.annotation.Generated;
@@ -9,9 +10,25 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity
-public class User {
+import org.springframework.context.annotation.Bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@Entity
+@JsonIgnoreProperties(value= {"handler","hibernateLazyInitializer","fieldHandler"})
+public class User implements Serializable{
+
+	/*@Bean
+	public ObjectMapper objectMapper()
+	{
+		return new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+	}*/
+/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 @Id
 @GeneratedValue(strategy= GenerationType.AUTO)
 	private long id;

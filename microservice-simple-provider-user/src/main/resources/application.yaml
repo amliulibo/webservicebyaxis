@@ -1,0 +1,33 @@
+server:
+   port: 8000
+spring:
+   jpa:
+      generate-ddl: false
+      # 让hibernate打印执行的SQL
+      show-sql: true
+      hibernate:
+         ddl-auto: none
+   datasource:      #
+      platform: h2      
+      schema: classpath:schema.sql
+      data: classpath:data.sql
+logging:
+   level:
+      root: INFO      # 配置日志级别，让hibernate打印出执行的SQL参
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+      org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+management:
+   endpoints:
+      health:
+         show-details: always    
+      web:
+         exposure:
+            include: '*'  
+info:
+   app:
+      name: ${project.artifactId}
+      encoding: $project.build.sourceEncoding$
+      java:
+         source: $java.version$
+         target: $java.version$            
+         
