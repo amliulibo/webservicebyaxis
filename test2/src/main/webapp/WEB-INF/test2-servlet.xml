@@ -10,7 +10,7 @@
             http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
     
     <!-- 激活@Controller模式 -->
-    <mvc:annotation-driven />
+    
     <!-- 对包中的所有类进行扫描，以完成Bean创建和自动依赖注入的功能 需要更改 -->
     <context:component-scan base-package="com.llb.test2.controller" />
 
