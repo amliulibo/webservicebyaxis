@@ -1,14 +1,14 @@
 
-<#-- ÕâÊÇFreemarker×¢ÊÍ -->
+<#-- ${column.COLUMN_NAME?cap_first} -->
 
 
-public class ${tablename?upper_case}DTO implement ISerializable {
+public class ${shortname}DTO implement ISerializable {
 
-	<#list tablecolumnlist as column>
+	<#list dtocolumnList as column>
 	private ${column.DATA_TYPE} ${column.COLUMN_NAME};
 	</#list>
 	
-	<#list tablecolumnlist as column>
+	<#list dtocolumnList as column>
 	public void set${column.COLUMN_NAME?cap_first}(${column.DATA_TYPE} ${column.COLUMN_NAME})
 	{
 		this.${column.COLUMN_NAME} = ${column.COLUMN_NAME};

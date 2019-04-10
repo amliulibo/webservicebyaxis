@@ -1,11 +1,18 @@
-<#-- 这是Freemarker注释 -->
-<#-- 获取简单值 -->
+<#--  -->
+<#--${shortname?upper_case}-->
 
-Public Interface I${tablename}DAO {
+Public Interface I${shortname}DAO {
 
-	integer insert${tablename?upper_case}(List<{tablename?upper_case}DTO> dtoLst);
+	int insertOne( DBManager dbManager,${shortname}DTO  dto);
 	
+	int updateOne(DBManager dbManager,${shortname}DTO dto);
+	int deleteOne(DBManager dbManager,String billid);
+    
+	public List<${shortname}DTO> selectList(DBManager dbManager);
 	
+	int insertList(DBManager dbManager,List<${shortname}DTO> dtoLst);
+	
+	String selectGUID(); 
 }
 
 
