@@ -19,6 +19,15 @@ public class db {
 		return conn;
 		
 	}
+	
+	private static Connection getConnectionOracle() throws ClassNotFoundException, SQLException
+	{
+		Class.forName("oracle.jdbc.driver.OracleDriver");  
+		Connection conn = DriverManager.getConnection("jdbc:oracle:thin://@10.32.15.1:1521/testgkdb","FASP13000000","FASP13000000");
+		 
+         return conn;
+		
+	}
 	// 获取数据库中所有表的表名，并添加到列表结构中。
 	@SuppressWarnings("rawtypes")
 	public static List getTableList(Connection conn) throws SQLException {
@@ -56,7 +65,8 @@ public class db {
 	    List<Map> columnList = new ArrayList<Map>();
 
 	    String sql =
-	        "SELECT utc.table_name,utc.column_name,utc.data_type,utc.data_length,utc.data_default,utc.nullable,ucc.comments,p.PRIMARY_KEY " +
+	        "SELECT utc.table_name,utc.column_name,utc.data_type,utc.data_length,utc.data_default, utc.DATA_PRECISION,"+
+			 "utc.DATA_SCALE,utc.nullable,ucc.comments,p.PRIMARY_KEY " +
 	        "FROM  user_tab_columns utc " +
 	        "LEFT JOIN user_col_comments ucc " + //--查询注释
 	        "ON utc.table_name = ucc.table_name " +
@@ -70,15 +80,31 @@ public class db {
 	        "AND p.table_name = utc.table_name " +
 	        "WHERE utc.table_name = ?";
 	    PreparedStatement ps = conn.prepareStatement(sql);
-	    ps.setString(1, tableName);
+	    ps.setString(1, tableName.toUpperCase());
 	    ResultSet rs = ps.executeQuery();
 	    while (rs.next()) {
 	        Map map = new HashMap<>();
 
 	        String COLUMN_NAME = rs.getString("COLUMN_NAME");
-	        String DATA_TYPE = rs.getString("DATA_TYPE");//VARCHAR2
+	       
 	        String DATA_LENGTH = rs.getString("DATA_LENGTH");//200
+	        String DATA_PRECISION = rs.getString("DATA_PRECISION");//200
+	        String DATA_SCALE = rs.getString("DATA_SCALE");//200
 	        String DATA_DEFAULT = rs.getString("DATA_DEFAULT");
+	        
+	        String DATA_TYPE = rs.getString("DATA_TYPE");//VARCHAR2
+	        if (DATA_TYPE.equals("VARCHAR2")) {
+	        	DATA_TYPE="String";
+			}else if (DATA_TYPE.equals("NUMBER")) {
+				if (DATA_SCALE.equals("2")) {
+					DATA_TYPE="double";
+				}else {
+					DATA_TYPE="int";
+				}
+				
+			}
+	        
+	        
 	        String NULLABLE = rs.getString("NULLABLE");
 	        String COMMENTS = rs.getString("COMMENTS");
 	        String PRIMARY_KEY = rs.getString("PRIMARY_KEY");
@@ -99,7 +125,7 @@ public class db {
 	    return columnList;
 	}
 	
-	public static List<Map> getTableColumn_mysql(String schema, String tableName) throws SQLException
+	private static List<Map> getTableColumn_mysql(String schema, String tableName) throws SQLException
 	{
 		try {
 			return getTableColumn_mysql(getConnection(), tableName);
@@ -109,6 +135,34 @@ public class db {
 		}
 		return null;
 	}
+	private static List<Map> getTableColumn_oracle(String schema, String tableName) throws SQLException
+	{
+		try {
+			return getColumnList(getConnectionOracle(), tableName);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static List<Map> getTableColumn(String driverName, String schema, String tableName) throws SQLException, ClassNotFoundException
+	{
+		List<Map> list=null;
+		switch (driverName.toLowerCase()) {
+		case "mysql":
+			list= getTableColumn_mysql(schema,tableName);
+			break;
+
+		case "oracle":
+			list= getTableColumn_oracle(schema,tableName);
+			break;
+		}
+		
+		return list;
+		 
+	}
+	
 	
 	private static List<Map> getTableColumn_mysql(Connection conn, String tableName)
 		    throws SQLException {

@@ -13,11 +13,11 @@ import freemarker.template.TemplateException;
 public class FreemarkerUtil {
 	 public  Template getTemplate(String name) {
 	        try {
-	            // Í¨¹ıFreemakerµÄConfiguration¶ÁÈ¡ÏàÓ¦µÄftl
+	            // Í¨ï¿½ï¿½Freemakerï¿½ï¿½Configurationï¿½ï¿½È¡ï¿½ï¿½Ó¦ï¿½ï¿½ftl
 	            Configuration cfg = new Configuration();
-	            // Éè¶¨È¥ÄÄÀï¶ÁÈ¡ÏàÓ¦µÄftlÄ£°åÎÄ¼ş
+	            // ï¿½è¶¨È¥ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½Ó¦ï¿½ï¿½ftlÄ£ï¿½ï¿½ï¿½Ä¼ï¿½
 	            cfg.setClassForTemplateLoading(this.getClass(), "/ftl");
-	            // ÔÚÄ£°åÎÄ¼şÄ¿Â¼ÖĞÕÒµ½Ãû³ÆÎªnameµÄÎÄ¼ş
+	            // ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ä¼ï¿½Ä¿Â¼ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½Îªnameï¿½ï¿½ï¿½Ä¼ï¿½
 	            Template temp = cfg.getTemplate(name);
 	            return temp;
 	        } catch (IOException e) {
@@ -27,14 +27,14 @@ public class FreemarkerUtil {
 	    }
 	 
 	 /**
-	     * ¿ØÖÆÌ¨Êä³ö
+	     * ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½
 	     * 
 	     * @param name
 	     * @param root
 	     */
 	    public void print(String templateName, Map<String, Object> root) {
 	        try {
-	            // Í¨¹ıTemplate¿ÉÒÔ½«Ä£°åÎÄ¼şÊä³öµ½ÏàÓ¦µÄÁ÷
+	            // Í¨ï¿½ï¿½Templateï¿½ï¿½ï¿½Ô½ï¿½Ä£ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½
 	            Template temp = this.getTemplate(templateName);
 	            temp.process(root, new PrintWriter(System.out));
 	        } catch (TemplateException e) {
@@ -45,7 +45,7 @@ public class FreemarkerUtil {
 	    }
 	    
 	    /**
-	     * Êä³öÎÄ¼ş
+	     * ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 	     * 
 	     * @param name
 	     * @param root
@@ -54,12 +54,12 @@ public class FreemarkerUtil {
 	    public void printFile(String templateName, Map<String, Object> root, String outFile) {
 	        FileWriter out = null;
 	        try {
-	            // Í¨¹ıÒ»¸öÎÄ¼şÊä³öÁ÷£¬¾Í¿ÉÒÔĞ´µ½ÏàÓ¦µÄÎÄ¼şÖĞ£¬´Ë´¦ÓÃµÄÊÇ¾ø¶ÔÂ·¾¶
+	            
 	        	String fileFullPath="D:/test/freemakerdir/" + outFile;
 	            out = new FileWriter(new File(fileFullPath));
 	            Template temp = this.getTemplate(templateName);
 	            temp.process(root, out);
-	            System.out.print("ÒÑÉú³ÉÎÄ¼ş:"+fileFullPath);
+	            System.out.print("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½:"+fileFullPath);
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        } catch (TemplateException e) {
